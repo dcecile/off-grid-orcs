@@ -2,4 +2,4 @@ package offGridOrcs
 
 import scala.scalajs.js
 
-final case class Model(tiles: js.Array[Tile])
+final class Model(val tiles: js.Array[Tile], var camera: Camera)
