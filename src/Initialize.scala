@@ -10,27 +10,55 @@ object Initialize {
       camera())
 
   def tiles(): js.Array[Tile] = {
-    val maxIndex = Dimensions.mapSize.toInt - 1
-    val positions = for (x <- 0 to maxIndex; y <- 0 to maxIndex) yield Vec2(x.toDouble, y.toDouble)
-    def calculateShade(position: Vec2): Double = {
-      val center = Vec2(
-        maxIndex.toDouble / 2,
-        maxIndex.toDouble / 2)
-      val distance = (position - center).length
-      val period = 8
-      val min = 0.3
-      val max = 0.7
-      ((min + max) / 2
-        + (max - min) / 2
-          * Math.sin(distance / period * 2 * Math.PI))
-    }
-    positions
-      .map(position =>
-        new Tile(position, calculateShade(position)))
+    tilePositions()
+      .map(position => Tile(position, Shade.None()))
+      .map(addTileShade)
       .toJSArray
   }
 
+  def tilePositions(): Seq[Vec2] = {
+    val maxIndex = Dimensions.MapSize.toInt - 1
+    for (x <- 0 to maxIndex; y <- 0 to maxIndex)
+      yield Vec2(x.toDouble, y.toDouble)
+  }
+
+  def addTileShade(tile: Tile): Tile = {
+    def check(x: Double, y: Double) =
+      tile.position.x % 64 == x && tile.position.y % 64 == y
+    def highlight =
+      tile.copy(shade = Shade.Highlight())
+    def shadow =
+      tile.copy(shade = Shade.Shadow())
+    (tile.position.x % 32, tile.position.y % 32) match {
+      // 0, 0
+      case (0x00, 0x03) => shadow
+      case (0x09, 0x05) => highlight
+      case (0x05, 0x0a) => shadow
+      case (0x0c, 0x0f) => highlight
+      // 0, 1
+      case (0x0f, 0x12) => shadow
+      case (0x04, 0x10) => highlight
+      case (0x0c, 0x19) => shadow
+      case (0x0e, 0x1e) => highlight
+      // 1, 0
+      case (0x12, 0x04) => shadow
+      case (0x1c, 0x08) => highlight
+      case (0x19, 0x0c) => shadow
+      case (0x15, 0x0e) => highlight
+      // 1, 1
+      case (0x19, 0x1f) => shadow
+      case (0x12, 0x17) => highlight
+      case (0x17, 0x1a) => shadow
+      case (0x1a, 0x10) => highlight
+      // No shade
+      case _ => tile
+    }
+  }
+
   def camera(): Camera = {
-    Camera(Vec2.zero, Vec2.zero)
+    Camera(
+      topLeft = Vec2.zero,
+      velocity = Vec2.zero,
+      zoomOut = ZoomOut.OneX())
   }
 }

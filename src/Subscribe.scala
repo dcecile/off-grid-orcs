@@ -18,18 +18,24 @@ object Subscribe {
   val ScrollRight = "ArrowRight"
   val ScrollUp = "ArrowUp"
   val ScrollDown = "ArrowDown"
-  val scrollSpeed = 3.0
+  val ScrollSpeed = 1.0
+  val ZoomIn = "c"
+  val ZoomOut = "x"
 
   def translateKeyDown(event: dom.KeyboardEvent): Option[Message] = {
     event.key match {
       case ScrollLeft => Some(
-        Message.StartScrollX(-scrollSpeed))
+        Message.StartScrollX(-ScrollSpeed))
       case ScrollRight => Some(
-        Message.StartScrollX(+scrollSpeed))
+        Message.StartScrollX(+ScrollSpeed))
       case ScrollUp => Some(
-        Message.StartScrollY(-scrollSpeed))
+        Message.StartScrollY(-ScrollSpeed))
       case ScrollDown => Some(
-        Message.StartScrollY(+scrollSpeed))
+        Message.StartScrollY(+ScrollSpeed))
+      case ZoomIn => Some(
+        Message.ZoomIn())
+      case ZoomOut => Some(
+        Message.ZoomOut())
       case _ => None
     }
   }

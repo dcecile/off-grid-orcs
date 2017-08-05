@@ -23,10 +23,10 @@ object Update {
       case Message.StopScrollY() =>
         camera.copy(velocity =
           camera.velocity.copy(y = 0))
+      case Message.ZoomIn() =>
+        camera.copy(zoomOut = ZoomOut.OneX())
+      case Message.ZoomOut() =>
+        camera.copy(zoomOut = ZoomOut.TwoX())
     }
-  }
-
-  def tileShade(tile: Tile): Double = {
-    (tile.shade + 0.01) % 1
   }
 }

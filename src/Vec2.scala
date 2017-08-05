@@ -28,4 +28,5 @@ final case class Vec2(x: Double, y: Double) {
 
 object Vec2 {
   val zero = Vec2(0, 0)
+  val one = Vec2(1, 1)
 }
