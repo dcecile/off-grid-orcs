@@ -3,34 +3,48 @@ package offGridOrcs
 import scala.scalajs.js
 import org.scalajs.dom
 
-final case class Loop(model: Model, canvas: SimpleCanvas) {
+final class Loop(var model: Model, val canvas: SimpleCanvas) {
+  var isAnimationFrameRequested = false
+
   val colorBuffer = new js.typedarray.Float64Array(
-    Dimensions.LowRez.toInt * Dimensions.LowRez.toInt * 3)
+    (Dimensions.LowRez * Dimensions.LowRez * 3).toInt)
 
   def send(message: Message): Unit = {
-    model.camera = Update.camera(
-      model.camera,
-      message)
-  }
+    model = Update.updateModel(model, message)
 
-  def animate(): Unit = {
-    send(Message.Animate())
-    aggregateColors()
-    canvas.drawPixels(colorBuffer)
-    dom.window.requestAnimationFrame(_ => animate)
-  }
-
-  def aggregateColors(): Unit = {
-    model.camera.zoomOut match {
-      case ZoomOut.OneX() => aggregateColorsOneX()
-      case ZoomOut.TwoX() => aggregateColorsTwoX()
+    if (!isAnimationFrameRequested) {
+      draw()
     }
   }
 
-  def aggregateColorsOneX(): Unit = {
+  def draw(): Unit = {
+    model.uiState match {
+      case _: UIState.Title =>
+        canvas.drawTitle()
+      case mapState: UIState.Map =>
+        aggregateColors(mapState.camera)
+        canvas.drawPixels(colorBuffer)
+        dom.window.requestAnimationFrame({ _ =>
+          isAnimationFrameRequested = false
+          send(Message.Animate())
+        })
+        isAnimationFrameRequested = true
+    }
+  }
+
+  def aggregateColors(camera: Camera): Unit = {
+    camera.zoomOut match {
+      case ZoomOut.OneX() =>
+        aggregateColorsOneX(camera)
+      case ZoomOut.TwoX() =>
+        aggregateColorsTwoX(camera)
+    }
+  }
+
+  def aggregateColorsOneX(camera: Camera): Unit = {
     val lowRez = Dimensions.LowRez.toInt
     val mapSize = Dimensions.MapSize.toInt
-    val cameraTopLeft = model.camera.topLeft
+    val cameraTopLeft = camera.topLeft
     val cameraX = cameraTopLeft.x.toInt
     val cameraY = cameraTopLeft.y.toInt
     for (y <- 0 until lowRez) {
@@ -47,10 +61,10 @@ final case class Loop(model: Model, canvas: SimpleCanvas) {
     }
   }
 
-  def aggregateColorsTwoX(): Unit = {
+  def aggregateColorsTwoX(camera: Camera): Unit = {
     val lowRez = Dimensions.LowRez.toInt
     val mapSize = Dimensions.MapSize.toInt
-    val cameraTopLeft = model.camera.topLeft
+    val cameraTopLeft = camera.topLeft
     val cameraX = cameraTopLeft.x.toInt
     val cameraY = cameraTopLeft.y.toInt
     for (y <- 0 until lowRez) {

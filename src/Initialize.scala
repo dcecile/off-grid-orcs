@@ -4,19 +4,19 @@ import scala.scalajs.js
 import scala.scalajs.js.JSConverters._
 
 object Initialize {
-  def model(): Model =
+  def initializeModel(): Model =
     new Model(
-      tiles(),
-      camera())
+      initializeTiles(),
+      initializeTitleState())
 
-  def tiles(): js.Array[Tile] = {
-    tilePositions()
+  def initializeTiles(): js.Array[Tile] = {
+    initializeTilePositions()
       .map(position => Tile(position, Shade.None()))
       .map(addTileShade)
       .toJSArray
   }
 
-  def tilePositions(): Seq[Vec2] = {
+  def initializeTilePositions(): Seq[Vec2] = {
     val maxIndex = Dimensions.MapSize.toInt - 1
     for (x <- 0 to maxIndex; y <- 0 to maxIndex)
       yield Vec2(x.toDouble, y.toDouble)
@@ -55,7 +55,16 @@ object Initialize {
     }
   }
 
-  def camera(): Camera = {
+  def initializeTitleState(): UIState.Title = {
+    UIState.Title()
+  }
+
+  def initializeMapState(): UIState.Map = {
+    UIState.Map(
+      initializeCamera())
+  }
+
+  def initializeCamera(): Camera = {
     Camera(
       topLeft = Vec2.zero,
       velocity = Vec2.zero,

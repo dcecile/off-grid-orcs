@@ -3,11 +3,22 @@ package offGridOrcs
 import org.scalajs.dom
 
 object Subscribe {
-  def window(send: Function[Message, Unit]): Unit = {
+  def subscribeToWindowEvents(send: Function[Message, Unit]): Unit = {
     dom.window.onkeydown =
       translateKeyToSend(translateKeyDown, send)
     dom.window.onkeyup =
       translateKeyToSend(translateKeyUp, send)
+  }
+
+  def subscribeToCanvasEvents(canvas: SimpleCanvas, send: Function[Message, Unit]): Unit = {
+    canvas.element.onclick = { event: dom.MouseEvent =>
+      if (event.button == 0) {
+        val clientPosition = Vec2(
+          event.clientX.toDouble,
+          event.clientY.toDouble)
+        send(Message.LeftClick(clientPosition / Dimensions.LowRez))
+      }
+    }
   }
 
   def translateKeyToSend(translate: Function[dom.KeyboardEvent, Option[Message]], send: Function[Message, Unit])(event: dom.KeyboardEvent): Unit = {
@@ -21,6 +32,7 @@ object Subscribe {
   val ScrollSpeed = 1.0
   val ZoomIn = "c"
   val ZoomOut = "x"
+  val Reset = "Backspace"
 
   def translateKeyDown(event: dom.KeyboardEvent): Option[Message] = {
     event.key match {
@@ -36,6 +48,8 @@ object Subscribe {
         Message.ZoomIn())
       case ZoomOut => Some(
         Message.ZoomOut())
+      case Reset => Some(
+        Message.Reset())
       case _ => None
     }
   }

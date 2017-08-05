@@ -6,6 +6,7 @@ import org.scalajs.dom.html
 
 final case class SimpleCanvas(element: html.Canvas, context: dom.CanvasRenderingContext2D, imageData: dom.ImageData) {
   def drawPixels(colorBuffer: js.typedarray.Float64Array): Unit = {
+    element.style.backgroundImage = "none"
     val output = imageData.data
     for (i <- 0 until colorBuffer.length / 3) {
       val j = i * 3
@@ -20,16 +21,24 @@ final case class SimpleCanvas(element: html.Canvas, context: dom.CanvasRendering
     }
     context.putImageData(imageData, 0, 0)
   }
+
+  def drawTitle(): Unit = {
+    context.clearRect(0, 0, Dimensions.LowRez, Dimensions.LowRez)
+    element.style.backgroundImage = s"url(${Bitmaps.titleScreen})"
+  }
 }
 
 object SimpleCanvas {
   def createLowRez(): SimpleCanvas = {
+    val canvasSize = Dimensions.LowRez.toInt
+    val elementSize = s"${canvasSize * 6}px"
     val document = dom.document
     val element = document.createElement("canvas").asInstanceOf[html.Canvas]
-    element.width = Dimensions.LowRez.toInt
-    element.height = Dimensions.LowRez.toInt
-    element.style.width = "384px"
-    element.style.height = "384px"
+    element.width = canvasSize
+    element.height = canvasSize
+    element.style.width = elementSize
+    element.style.height = elementSize
+    element.style.backgroundSize = s"$elementSize $elementSize"
     element.style.setProperty("image-rendering", "pixelated")
     document.body.appendChild(element)
     val context = element.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
