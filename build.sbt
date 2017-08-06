@@ -1,4 +1,4 @@
-scalaVersion := "2.12.1"
+scalaVersion := "2.12.3"
 
 enablePlugins(ScalaJSPlugin)
 scalaJSUseMainModuleInitializer := true

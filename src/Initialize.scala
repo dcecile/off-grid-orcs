@@ -23,8 +23,6 @@ object Initialize {
   }
 
   def addTileShade(tile: Tile): Tile = {
-    def check(x: Double, y: Double) =
-      tile.position.x % 64 == x && tile.position.y % 64 == y
     def highlight =
       tile.copy(shade = Shade.Highlight())
     def shadow =
