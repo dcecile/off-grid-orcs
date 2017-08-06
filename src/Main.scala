@@ -7,6 +7,6 @@ object Main {
     val loop = new Loop(model, canvas)
     Subscribe.subscribeToWindowEvents(loop.send(_))
     Subscribe.subscribeToCanvasEvents(canvas, loop.send(_))
-    loop.send(Message.Animate())
+    loop.send(Message.Animate(Duration.Zero))
   }
 }

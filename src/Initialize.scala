@@ -4,21 +4,31 @@ import scala.scalajs.js
 import scala.scalajs.js.JSConverters._
 
 object Initialize {
-  def initializeModel(): Model =
-    new Model(
-      initializeTiles(),
+  def initializeModel(): Model = {
+    val tiles = initializeTiles()
+    val orc = Movement.handleOrcInitialization(
+      initializeOrc(),
+      tiles)
+    Model(
+      Time.Zero,
+      tiles,
+      orc,
       initializeTitleState())
+  }
 
   def initializeTiles(): js.Array[Tile] = {
     initializeTilePositions()
-      .map(position => Tile(position, Shade.None()))
+      .map(position => Tile(
+        position,
+        Shade.None(),
+        None))
       .map(addTileShade)
       .toJSArray
   }
 
   def initializeTilePositions(): Seq[Vec2] = {
-    val maxIndex = Dimensions.MapSize.toInt - 1
-    for (x <- 0 to maxIndex; y <- 0 to maxIndex)
+    val mapRange = 0 to (Dimensions.MapSize.toInt - 1)
+    for (x <- mapRange; y <- mapRange)
       yield Vec2(x.toDouble, y.toDouble)
   }
 
@@ -53,6 +63,12 @@ object Initialize {
     }
   }
 
+  def initializeOrc(): Orc = {
+    Orc(
+      Vec2.One * (Dimensions.MapSize / 2).floor,
+      Plan.idle(Time.Zero))
+  }
+
   def initializeTitleState(): UIState.Title = {
     UIState.Title()
   }
@@ -64,8 +80,10 @@ object Initialize {
 
   def initializeCamera(): Camera = {
     Camera(
-      topLeft = Vec2.zero,
-      velocity = Vec2.zero,
+      topLeft = Vec2.One
+        * ((Dimensions.MapSize - Dimensions.LowRez) / 2).floor,
+      velocity = Vec2.Zero,
       zoomOut = ZoomOut.OneX())
   }
+
 }

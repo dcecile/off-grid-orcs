@@ -38,11 +38,15 @@ final case class Vec3(x: Double, y: Double, z: Double) {
   def darken(value: Double) = {
     this * (1 - value)
   }
+
+  def mix(other: Vec3, otherAmount: Double) = {
+    this * (1 - otherAmount) + other * otherAmount
+  }
 }
 
 object Vec3 {
-  val zero = Vec3(0, 0, 0)
-  val one = Vec3(1, 1, 1)
+  val Zero = Vec3(0, 0, 0)
+  val One = Vec3(1, 1, 1)
   def hexRGB(hexCode: Int): Vec3 = {
     val r = (hexCode & 0xFF0000) >>> 16
     val g = (hexCode & 0x00FF00) >>> 8

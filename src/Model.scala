@@ -2,4 +2,4 @@ package offGridOrcs
 
 import scala.scalajs.js
 
-final case class Model(tiles: js.Array[Tile], uiState: UIState)
+final case class Model(currentTime: Time, tiles: js.Array[Tile], orc: Orc, uiState: UIState)

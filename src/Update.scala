@@ -2,8 +2,73 @@ package offGridOrcs
 
 object Update {
   def updateModel(model: Model, message: Message): Model = {
-    model.copy(uiState =
-      updateUIState(model.uiState, message))
+    val newCurrentTime = updateCurrentTime(
+      model.currentTime,
+      model.uiState,
+      message)
+    val newUIState = updateUIState(
+      model.uiState,
+      message)
+    val newOrc = Movement.handleOrcMovement(
+      model.orc,
+      updateOrc(
+        model.orc,
+        newCurrentTime,
+        newUIState,
+        message),
+      model.tiles)
+    Model(
+      newCurrentTime,
+      model.tiles,
+      newOrc,
+      newUIState)
+  }
+
+  def updateCurrentTime(currentTime: Time, uiState: UIState, message: Message): Time = {
+    uiState match {
+      case mapState: UIState.Map =>
+        message match {
+          case Message.Animate(duration) =>
+            currentTime + duration
+          case _ =>
+            currentTime
+        }
+      case _ =>
+        currentTime
+    }
+  }
+
+  def updateOrc(orc: Orc, currentTime: Time, uiState: UIState, message: Message): Orc = {
+    uiState match {
+      case mapState: UIState.Map =>
+        message match {
+          case Message.Animate(_) =>
+            executeOrcPlan(orc, currentTime)
+          case _ => orc
+        }
+      case _ => orc
+    }
+  }
+
+  def executeOrcPlan(orc: Orc, currentTime: Time): Orc = {
+    orc.plan.head match {
+      case Step.Walk(direction, arrivalTime) =>
+        if (arrivalTime.isReached(currentTime)) {
+          orc.copy(
+            position = orc.position + direction,
+            plan = refreshOrcPlan(orc.plan.tail, currentTime))
+        } else {
+          orc
+        }
+    }
+  }
+
+  def refreshOrcPlan(plan: Plan, currentTime: Time): Plan = {
+    if (plan.steps.isEmpty) {
+      Plan.idle(currentTime)
+    } else {
+      plan
+    }
   }
 
   def updateUIState(uiState: UIState, message: Message): UIState = {
@@ -28,10 +93,11 @@ object Update {
 
   def updateCamera(camera: Camera, message: Message): Camera = {
     message match {
-      case Message.Animate() =>
-        if (camera.velocity != Vec2.zero) {
+      case Message.Animate(duration) =>
+        if (camera.velocity != Vec2.Zero) {
           camera
-            .copy(topLeft = (camera.topLeft + camera.velocity))
+            .copy(topLeft =
+              (camera.topLeft + camera.velocity * duration.totalFrames))
             .clamp()
         } else {
           camera
@@ -49,9 +115,9 @@ object Update {
         camera.copy(velocity =
           camera.velocity.copy(y = 0))
       case Message.ZoomIn() =>
-        camera.copy(zoomOut = ZoomOut.OneX())
+        camera.changeZoomOut(ZoomOut.OneX())
       case Message.ZoomOut() =>
-        camera.copy(zoomOut = ZoomOut.TwoX())
+        camera.changeZoomOut(ZoomOut.TwoX())
       case _ =>
         camera
     }

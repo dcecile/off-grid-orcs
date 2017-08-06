@@ -1,3 +1,3 @@
 package offGridOrcs
 
-final case class Tile(position: Vec2, shade: Shade)
+final case class Tile(position: Vec2, shade: Shade, orc: Option[Orc])

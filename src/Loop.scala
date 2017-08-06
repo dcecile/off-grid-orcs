@@ -4,6 +4,8 @@ import scala.scalajs.js
 import org.scalajs.dom
 
 final class Loop(var model: Model, val canvas: SimpleCanvas) {
+  var previousJSTimestamp: Option[Double] = None
+
   var isAnimationFrameRequested = false
 
   val colorBuffer = new js.typedarray.Float64Array(
@@ -14,6 +16,9 @@ final class Loop(var model: Model, val canvas: SimpleCanvas) {
 
     if (!isAnimationFrameRequested) {
       draw()
+      if (!isAnimationFrameRequested) {
+        previousJSTimestamp = None
+      }
     }
   }
 
@@ -24,12 +29,23 @@ final class Loop(var model: Model, val canvas: SimpleCanvas) {
       case mapState: UIState.Map =>
         aggregateColors(mapState.camera)
         canvas.drawPixels(colorBuffer)
-        dom.window.requestAnimationFrame({ _ =>
-          isAnimationFrameRequested = false
-          send(Message.Animate())
-        })
-        isAnimationFrameRequested = true
+        requestAnimationFrame()
     }
+  }
+
+  def requestAnimationFrame(): Unit = {
+    dom.window.requestAnimationFrame({ currentJSTimestamp =>
+      val duration = previousJSTimestamp match {
+        case None =>
+          Duration.Zero
+        case Some(previousJSTimestamp) =>
+          Duration.fromJSTimestamps(previousJSTimestamp, currentJSTimestamp)
+      }
+      isAnimationFrameRequested = false
+      send(Message.Animate(duration))
+      previousJSTimestamp = Some(currentJSTimestamp)
+    })
+    isAnimationFrameRequested = true
   }
 
   def aggregateColors(camera: Camera): Unit = {
