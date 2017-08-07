@@ -24,6 +24,9 @@ final case class Vec2(x: Double, y: Double) {
 
   def length =
     Math.sqrt(lengthSquared)
+
+  def floor =
+    Vec2(x.floor, y.floor)
 }
 
 object Vec2 {

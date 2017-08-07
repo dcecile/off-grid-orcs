@@ -6,6 +6,7 @@ import org.scalajs.dom.html
 
 final case class SimpleCanvas(element: html.Canvas, context: dom.CanvasRenderingContext2D, imageData: dom.ImageData) {
   def drawPixels(colorBuffer: js.typedarray.Float64Array): Unit = {
+    element.style.cursor = "none"
     element.style.backgroundImage = "none"
     val output = imageData.data
     for (i <- 0 until colorBuffer.length / 3) {
@@ -23,6 +24,7 @@ final case class SimpleCanvas(element: html.Canvas, context: dom.CanvasRendering
   }
 
   def drawTitle(): Unit = {
+    element.style.cursor = "pointer"
     context.clearRect(0, 0, Dimensions.LowRez, Dimensions.LowRez)
     element.style.backgroundImage = s"url(${Bitmaps.titleScreen})"
   }

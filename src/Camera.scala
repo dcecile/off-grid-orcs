@@ -1,7 +1,7 @@
 package offGridOrcs
 
 final case class Camera(topLeft: Vec2, velocity: Vec2, zoomOut: ZoomOut) {
-  def clamp(): Camera =
+  def clamp: Camera =
     this.copy(topLeft = Vec2(
       clampTopOrLeft(topLeft.x),
       clampTopOrLeft(topLeft.y)))
@@ -16,6 +16,6 @@ final case class Camera(topLeft: Vec2, velocity: Vec2, zoomOut: ZoomOut) {
     val newCamera = this.copy(
       topLeft = centerPoint - Vec2.One * Dimensions.LowRez * newZoomOut.value / 2,
       zoomOut = newZoomOut)
-    newCamera.clamp()
+    newCamera.clamp
   }
 }

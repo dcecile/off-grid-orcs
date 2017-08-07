@@ -8,10 +8,11 @@ object Initialize {
     Model.Title()
   }
 
-  def initializeMapModel(): Model.Map = {
+  def initializeMapModel(cursorPosition: Vec2): Model.Map = {
     Model.Map(
       initializeWorld(),
-      initializeCamera())
+      initializeCamera(),
+      initializeCursor(cursorPosition))
   }
 
   def initializeWorld(): World = {
@@ -83,4 +84,9 @@ object Initialize {
       zoomOut = ZoomOut.OneX())
   }
 
+  def initializeCursor(position: Vec2): Cursor = {
+    Cursor(
+      Some(position),
+      Cursor.Inspect()).clamp
+  }
 }

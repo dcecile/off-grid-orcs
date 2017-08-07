@@ -20,13 +20,13 @@ final case class World(currentTime: Time, tiles: js.Array[Tile], orcs: js.Array[
     command match {
       case Command.InsertOrc(position, plan) =>
         val id = Reference.Orc(orcs.length)
-        val orc = Orc(id, position, plan)
-        setOrc(orc)
-        setTileOrc(orc.position, Some(orc))
+        val newOrc = Orc(id, position, plan)
+        setOrc(newOrc)
+        setTileOrc(newOrc.position, Some(newOrc))
         this
       case Command.UpdateOrc(newOrc) =>
-        setOrc(newOrc)
         val oldOrc = apply(newOrc.id)
+        setOrc(newOrc)
         if (newOrc.position != oldOrc.position) {
           setTileOrc(oldOrc.position, None)
           setTileOrc(newOrc.position, Some(newOrc))

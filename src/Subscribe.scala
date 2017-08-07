@@ -3,25 +3,37 @@ package offGridOrcs
 import org.scalajs.dom
 
 object Subscribe {
-  def subscribeToWindowEvents(send: Function[Message, Unit]): Unit = {
+  def subscribeToWindowEvents(send: Message => Unit): Unit = {
     dom.window.onkeydown =
-      translateKeyToSend(translateKeyDown, send)
+      sendKeyMessage(translateKeyDown, send)
     dom.window.onkeyup =
-      translateKeyToSend(translateKeyUp, send)
+      sendKeyMessage(translateKeyUp, send)
   }
 
-  def subscribeToCanvasEvents(canvas: SimpleCanvas, send: Function[Message, Unit]): Unit = {
+  def subscribeToCanvasEvents(canvas: SimpleCanvas, send: Message => Unit): Unit = {
     canvas.element.onclick = { event: dom.MouseEvent =>
       if (event.button == 0) {
-        val clientPosition = Vec2(
-          event.clientX.toDouble,
-          event.clientY.toDouble)
-        send(Message.LeftClick(clientPosition / Dimensions.LowRez))
+        sendMouseMessage(Message.LeftClick, send)(event)
       }
+    }
+    canvas.element.onmousemove =
+      sendMouseMessage(Message.MouseMove, send)
+    canvas.element.onmouseleave = { _ =>
+      send(Message.MouseLeave())
     }
   }
 
-  def translateKeyToSend(translate: Function[dom.KeyboardEvent, Option[Message]], send: Function[Message, Unit])(event: dom.KeyboardEvent): Unit = {
+  def sendMouseMessage(message: Vec2 => Message, send: Message => Unit)(event: dom.MouseEvent): Unit = {
+    val targetElement = event.target.asInstanceOf[dom.raw.HTMLElement]
+    val clientRect = targetElement.getBoundingClientRect
+    val clientPosition = Vec2(
+      (event.clientX - clientRect.left) / clientRect.width,
+      (event.clientY - clientRect.top) / clientRect.height)
+    val messagePosition = (clientPosition * Dimensions.LowRez).floor
+    send(message(messagePosition))
+  }
+
+  def sendKeyMessage(translate: dom.KeyboardEvent => Option[Message], send: Message => Unit)(event: dom.KeyboardEvent): Unit = {
     translate(event).foreach(send(_))
   }
 

@@ -12,8 +12,8 @@ object Update {
 
   def updateTitleModel(model: Model.Title, message: Message): Model = {
     message match {
-      case Message.LeftClick(_) =>
-        Initialize.initializeMapModel()
+      case Message.LeftClick(position) =>
+        Initialize.initializeMapModel(position)
       case _ =>
         model
     }
@@ -26,7 +26,8 @@ object Update {
       case _ =>
         Model.Map(
           updateWorld(model.world, message),
-          updateCamera(model.camera, message))
+          updateCamera(model.camera, message),
+          updateCursor(model.cursor, message))
     }
   }
 
@@ -78,8 +79,8 @@ object Update {
         if (camera.velocity != Vec2.Zero) {
           camera
             .copy(topLeft =
-              (camera.topLeft + camera.velocity * duration.totalFrames))
-            .clamp()
+              (camera.topLeft + camera.velocity * camera.zoomOut.value * duration.totalFrames))
+            .clamp
         } else {
           camera
         }
@@ -101,6 +102,31 @@ object Update {
         camera.changeZoomOut(ZoomOut.TwoX())
       case _ =>
         camera
+    }
+  }
+
+  def updateCursor(cursor: Cursor, message: Message): Cursor = {
+    message match {
+      case Message.MouseMove(position) =>
+        cursor.copy(position = Some(position)).clamp
+      case Message.MouseLeave() =>
+        cursor.copy(position = None)
+      case Message.ZoomIn() =>
+        cursor.action match {
+          case Cursor.ZoomedOut(zoomedInAction) =>
+            cursor.copy(action = zoomedInAction).clamp
+          case _ =>
+            cursor
+        }
+      case Message.ZoomOut() =>
+        cursor.action match {
+          case Cursor.ZoomedOut(_) =>
+            cursor
+          case zoomedInAction =>
+            cursor.copy(action = Cursor.ZoomedOut(zoomedInAction)).clamp
+        }
+      case _ =>
+        cursor
     }
   }
 }

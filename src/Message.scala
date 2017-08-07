@@ -10,5 +10,7 @@ object Message {
   final case class ZoomIn() extends Message
   final case class ZoomOut() extends Message
   final case class LeftClick(position: Vec2) extends Message
+  final case class MouseMove(position: Vec2) extends Message
+  final case class MouseLeave() extends Message
   final case class Reset() extends Message
 }
