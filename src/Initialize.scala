@@ -5,15 +5,21 @@ import scala.scalajs.js.JSConverters._
 
 object Initialize {
   def initializeModel(): Model = {
-    val tiles = initializeTiles()
-    val orc = Movement.handleOrcInitialization(
-      initializeOrc(),
-      tiles)
-    Model(
+    Model.Title()
+  }
+
+  def initializeMapModel(): Model.Map = {
+    Model.Map(
+      initializeWorld(),
+      initializeCamera())
+  }
+
+  def initializeWorld(): World = {
+    val world = World(
       Time.Zero,
-      tiles,
-      orc,
-      initializeTitleState())
+      initializeTiles(),
+      js.Array[Orc]())
+    initializeOrc(world)
   }
 
   def initializeTiles(): js.Array[Tile] = {
@@ -63,19 +69,10 @@ object Initialize {
     }
   }
 
-  def initializeOrc(): Orc = {
-    Orc(
+  def initializeOrc(world: World): World = {
+    world.execute(Command.InsertOrc(
       Vec2.One * (Dimensions.MapSize / 2).floor,
-      Plan.idle(Time.Zero))
-  }
-
-  def initializeTitleState(): UIState.Title = {
-    UIState.Title()
-  }
-
-  def initializeMapState(): UIState.Map = {
-    UIState.Map(
-      initializeCamera())
+      Plan.idle(Time.Zero)))
   }
 
   def initializeCamera(): Camera = {

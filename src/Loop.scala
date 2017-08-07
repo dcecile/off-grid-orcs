@@ -23,11 +23,11 @@ final class Loop(var model: Model, val canvas: SimpleCanvas) {
   }
 
   def draw(): Unit = {
-    model.uiState match {
-      case _: UIState.Title =>
+    model match {
+      case _: Model.Title =>
         canvas.drawTitle()
-      case mapState: UIState.Map =>
-        aggregateColors(mapState.camera)
+      case mapModel: Model.Map =>
+        aggregateColors(mapModel)
         canvas.drawPixels(colorBuffer)
         requestAnimationFrame()
     }
@@ -48,26 +48,27 @@ final class Loop(var model: Model, val canvas: SimpleCanvas) {
     isAnimationFrameRequested = true
   }
 
-  def aggregateColors(camera: Camera): Unit = {
-    camera.zoomOut match {
+  def aggregateColors(mapModel: Model.Map): Unit = {
+    mapModel.camera.zoomOut match {
       case ZoomOut.OneX() =>
-        aggregateColorsOneX(camera)
+        aggregateColorsOneX(mapModel)
       case ZoomOut.TwoX() =>
-        aggregateColorsTwoX(camera)
+        aggregateColorsTwoX(mapModel)
     }
   }
 
-  def aggregateColorsOneX(camera: Camera): Unit = {
+  def aggregateColorsOneX(mapModel: Model.Map): Unit = {
+    val tiles = mapModel.world.tiles
     val lowRez = Dimensions.LowRez.toInt
     val mapSize = Dimensions.MapSize.toInt
-    val cameraTopLeft = camera.topLeft
+    val cameraTopLeft = mapModel.camera.topLeft
     val cameraX = cameraTopLeft.x.toInt
     val cameraY = cameraTopLeft.y.toInt
     for (y <- 0 until lowRez) {
       for (x <- 0 until lowRez) {
         val tileX = x + cameraX
         val tileY = y + cameraY
-        val tile = model.tiles(tileX + tileY * mapSize)
+        val tile = tiles(tileX + tileY * mapSize)
         val color = View.tileColor(tile)
         val i = (x + y * lowRez) * 3
         colorBuffer.update(i + 0, color.r)
@@ -77,23 +78,24 @@ final class Loop(var model: Model, val canvas: SimpleCanvas) {
     }
   }
 
-  def aggregateColorsTwoX(camera: Camera): Unit = {
+  def aggregateColorsTwoX(mapModel: Model.Map): Unit = {
+    val tiles = mapModel.world.tiles
     val lowRez = Dimensions.LowRez.toInt
     val mapSize = Dimensions.MapSize.toInt
-    val cameraTopLeft = camera.topLeft
+    val cameraTopLeft = mapModel.camera.topLeft
     val cameraX = cameraTopLeft.x.toInt
     val cameraY = cameraTopLeft.y.toInt
     for (y <- 0 until lowRez) {
       for (x <- 0 until lowRez) {
         val tilesX = x * 2 + cameraX
         val tilesY = y * 2 + cameraY
-        val tile00 = model.tiles((tilesX + 0) + (tilesY + 0) * mapSize)
+        val tile00 = tiles((tilesX + 0) + (tilesY + 0) * mapSize)
         val color00 = View.tileColor(tile00)
-        val tile01 = model.tiles((tilesX + 1) + (tilesY + 0) * mapSize)
+        val tile01 = tiles((tilesX + 1) + (tilesY + 0) * mapSize)
         val color01 = View.tileColor(tile01)
-        val tile10 = model.tiles((tilesX + 0) + (tilesY + 1) * mapSize)
+        val tile10 = tiles((tilesX + 0) + (tilesY + 1) * mapSize)
         val color10 = View.tileColor(tile10)
-        val tile11 = model.tiles((tilesX + 1) + (tilesY + 1) * mapSize)
+        val tile11 = tiles((tilesX + 1) + (tilesY + 1) * mapSize)
         val color11 = View.tileColor(tile11)
         val i = (x + y * lowRez) * 3
         colorBuffer.update(

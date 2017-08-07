@@ -2,52 +2,53 @@ package offGridOrcs
 
 object Update {
   def updateModel(model: Model, message: Message): Model = {
-    val newCurrentTime = updateCurrentTime(
-      model.currentTime,
-      model.uiState,
-      message)
-    val newUIState = updateUIState(
-      model.uiState,
-      message)
-    val newOrc = Movement.handleOrcMovement(
-      model.orc,
-      updateOrc(
-        model.orc,
-        newCurrentTime,
-        newUIState,
-        message),
-      model.tiles)
-    Model(
-      newCurrentTime,
-      model.tiles,
-      newOrc,
-      newUIState)
+    model match {
+      case titleModel: Model.Title =>
+        updateTitleModel(titleModel, message)
+      case mapModel: Model.Map =>
+        updateMapModel(mapModel, message)
+    }
   }
 
-  def updateCurrentTime(currentTime: Time, uiState: UIState, message: Message): Time = {
-    uiState match {
-      case mapState: UIState.Map =>
-        message match {
-          case Message.Animate(duration) =>
-            currentTime + duration
-          case _ =>
-            currentTime
-        }
+  def updateTitleModel(model: Model.Title, message: Message): Model = {
+    message match {
+      case Message.LeftClick(_) =>
+        Initialize.initializeMapModel()
       case _ =>
-        currentTime
+        model
     }
   }
 
-  def updateOrc(orc: Orc, currentTime: Time, uiState: UIState, message: Message): Orc = {
-    uiState match {
-      case mapState: UIState.Map =>
-        message match {
-          case Message.Animate(_) =>
-            executeOrcPlan(orc, currentTime)
-          case _ => orc
-        }
-      case _ => orc
+  def updateMapModel(model: Model.Map, message: Message): Model = {
+    message match {
+      case Message.Reset() =>
+        Initialize.initializeModel()
+      case _ =>
+        Model.Map(
+          updateWorld(model.world, message),
+          updateCamera(model.camera, message))
     }
+  }
+
+  def updateWorld(world: World, message: Message): World = {
+    message match {
+      case Message.Animate(duration) =>
+        animateWorld(world.copy(currentTime =
+          world.currentTime + duration))
+      case _ =>
+        world
+    }
+  }
+
+  def animateWorld(world: World): World = {
+    val commands = animateOrc(
+      world.orcs(0), world.currentTime)
+    world.execute(commands)
+  }
+
+  def animateOrc(orc: Orc, currentTime: Time): Seq[Command] = {
+    val newOrc = executeOrcPlan(orc, currentTime)
+    Seq(Command.UpdateOrc(newOrc))
   }
 
   def executeOrcPlan(orc: Orc, currentTime: Time): Orc = {
@@ -68,26 +69,6 @@ object Update {
       Plan.idle(currentTime)
     } else {
       plan
-    }
-  }
-
-  def updateUIState(uiState: UIState, message: Message): UIState = {
-    uiState match {
-      case _: UIState.Title =>
-        message match {
-          case Message.LeftClick(_) =>
-            Initialize.initializeMapState()
-          case _ =>
-            uiState
-        }
-      case mapState: UIState.Map =>
-        message match {
-          case Message.Reset() =>
-            Initialize.initializeTitleState()
-          case _ =>
-            mapState.copy(camera =
-              updateCamera(mapState.camera, message))
-        }
     }
   }
 

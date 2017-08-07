@@ -1,3 +1,3 @@
 package offGridOrcs
 
-final case class Orc(position: Vec2, plan: Plan)
+final case class Orc(id: Reference.Orc, position: Vec2, plan: Plan)

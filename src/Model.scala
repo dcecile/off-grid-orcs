@@ -1,5 +1,8 @@
 package offGridOrcs
 
-import scala.scalajs.js
+sealed trait Model
 
-final case class Model(currentTime: Time, tiles: js.Array[Tile], orc: Orc, uiState: UIState)
+object Model {
+  final case class Title() extends Model
+  final case class Map(world: World, camera: Camera) extends Model
+}
