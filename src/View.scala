@@ -26,7 +26,7 @@ object View {
         Seq(Sprite(
           position - Vec2.One * (spriteBuffer.size.toDouble / 2 - 1),
           spriteBuffer,
-          1.0))
+          cursor.action.pulse(mapModel.world.currentTime)))
       case None =>
         Seq()
     }

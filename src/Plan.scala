@@ -14,11 +14,7 @@ object Plan {
       Vec2(+1, 0),
       Vec2(0, -1),
       Vec2(0, +1))
-    val delays = Seq(
-      Duration(60),
-      Duration(120),
-      Duration(120),
-      Duration(240))
+    val delays = Timings.IdleSequence
     val loops = 3
     def repeat[A] = Seq.fill(loops)(_: Seq[A]).flatten
     val directionSequence = Random.shuffle(repeat(directions))

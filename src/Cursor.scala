@@ -24,10 +24,17 @@ final case class Cursor(position: Option[Vec2], action: Cursor.Action) {
 object Cursor {
   sealed trait Action {
     val spriteBuffer: SpriteBuffer
+    val pulse = Pulse.One
   }
 
   final case class Inspect() extends Action {
     val spriteBuffer = Bitmaps.inspectCursor
+  }
+
+  final case class Build() extends Action {
+    val spriteBuffer = Bitmaps.blueprintCursor
+    override val pulse = Pulse(
+      Time.Zero, Timings.BlueprintPulse, Colors.BlueprintStart, 1.0)
   }
 
   final case class ZoomedOut(zoomedInAction: Action) extends Action {

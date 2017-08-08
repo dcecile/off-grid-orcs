@@ -107,6 +107,21 @@ object Update {
 
   def updateCursor(cursor: Cursor, message: Message): Cursor = {
     message match {
+      case Message.LeftClick(position) =>
+        val newCursor = cursor.copy(position = Some(position)).clamp
+        newCursor.position match {
+          case Some(_) =>
+            newCursor.action match {
+              case Cursor.Inspect() =>
+                cursor.copy(action = Cursor.Build())
+              case Cursor.Build() =>
+                cursor.copy(action = Cursor.Inspect())
+              case _ =>
+                cursor
+            }
+          case None =>
+            cursor
+        }
       case Message.MouseMove(position) =>
         cursor.copy(position = Some(position)).clamp
       case Message.MouseLeave() =>

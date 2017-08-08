@@ -15,6 +15,17 @@ object Bitmaps {
       o, o, o, x, o, o, o)
   }
 
+  val blueprintCursor = {
+    val o = Vec3.Zero
+    val Z = Colors.Blueprint
+    SpriteBuffer.build(5)(
+      o, Z, Z, Z, o,
+      Z, Z, Z, Z, Z,
+      Z, Z, Z, Z, Z,
+      Z, Z, o, Z, Z,
+      o, Z, o, Z, o)
+  }
+
   val zoomedOutCursor = {
     val o = Vec3.Zero
     val x = Colors.CursorFaint

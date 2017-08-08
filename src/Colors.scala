@@ -8,4 +8,6 @@ object Colors {
   val Orc = Vec3.hexRGB(0x2cce18)
   val CursorBold = Vec3.One * 0.4
   val CursorFaint = Vec3.One * 0.1
+  val Blueprint = Vec3.hexRGB(0x305080)
+  val BlueprintStart = 0.2
 }

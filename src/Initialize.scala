@@ -87,6 +87,6 @@ object Initialize {
   def initializeCursor(position: Vec2): Cursor = {
     Cursor(
       Some(position),
-      Cursor.Inspect()).clamp
+      Cursor.Build()).clamp
   }
 }
