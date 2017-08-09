@@ -7,4 +7,5 @@ object Timings {
     Duration(120),
     Duration(240))
   val BlueprintPulse = Duration(90)
+  val GoalPulse = Duration(120)
 }

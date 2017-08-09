@@ -1,30 +1,22 @@
 package offGridOrcs
 
 final case class Cursor(position: Option[Vec2], action: Cursor.Action) {
-  def clamp = {
-    position match {
-      case Some(position) =>
-        if (isTopOrLeftOutOfRange(position.x) || isTopOrLeftOutOfRange(position.y)) {
-          this.copy(position = None)
-        } else {
-          this
-        }
-      case None =>
-        this
-    }
-  }
-
-  def isTopOrLeftOutOfRange(value: Double) = {
-    val halfSize = action.spriteBuffer.size / 2
-    (value.toInt < halfSize
-      || value.toInt >= Dimensions.LowRez - halfSize)
-  }
+  def clamp =
+    this.copy(position = position.map(action.clamp))
 }
 
 object Cursor {
   sealed trait Action {
     val spriteBuffer: SpriteBuffer
     val pulse = Pulse.One
+    def clamp(oldPosition: Vec2): Vec2 = {
+      val size = spriteBuffer.size
+      val topLeft = oldPosition.spriteTopLeft(size)
+      val newPosition = topLeft.clamp(
+        Vec2.Zero,
+        Vec2.One * (Dimensions.LowRez - size.toDouble))
+      newPosition + (oldPosition - topLeft)
+    }
   }
 
   final case class Inspect() extends Action {
@@ -32,9 +24,9 @@ object Cursor {
   }
 
   final case class Build() extends Action {
-    val spriteBuffer = Bitmaps.blueprintCursor
+    val spriteBuffer = Blueprint.Headquarters.cursorSpriteBuffer
     override val pulse = Pulse(
-      Time.Zero, Timings.BlueprintPulse, Colors.BlueprintStart, 1.0)
+      Time.Zero, Timings.BlueprintPulse, Colors.BlueprintPulseStart, 1.0, Pulse.Linear())
   }
 
   final case class ZoomedOut(zoomedInAction: Action) extends Action {

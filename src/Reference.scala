@@ -1,7 +1,6 @@
 package offGridOrcs
 
-sealed trait Reference
-
 object Reference {
-  final case class Orc(index: Int) extends Reference
+  final case class Orc(index: Int)
+  final case class Goal(index: Int)
 }

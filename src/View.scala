@@ -1,7 +1,7 @@
 package offGridOrcs
 
 object View {
-  def viewTileColor(tile: Tile): Vec3 = {
+  def viewTileColor(model: Model.Map, tile: Tile): Vec3 = {
     val baseColor = tile.shade match {
       case Shade.None() =>
         Colors.Forest
@@ -10,23 +10,30 @@ object View {
       case Shade.Shadow() =>
         Colors.ForestShadow
     }
-    tile.orc match {
+    val withOrc = tile.orc match {
       case Some(_) =>
         Colors.Orc.mix(baseColor, Colors.ForestCover)
       case None =>
         baseColor
     }
+    tile.goal match {
+      case Some(goalID) =>
+        val goal = model.world(goalID)
+        withOrc + goal.color * goal.pulse(model.world.currentTime)
+      case None =>
+        withOrc
+    }
   }
 
-  def viewSprites(mapModel: Model.Map): Seq[Sprite] = {
-    val cursor = mapModel.cursor
+  def viewSprites(model: Model.Map): Seq[Sprite] = {
+    val cursor = model.cursor
     cursor.position match {
       case Some(position) =>
         val spriteBuffer = cursor.action.spriteBuffer
         Seq(Sprite(
-          position - Vec2.One * (spriteBuffer.size.toDouble / 2 - 1),
+          position.spriteTopLeft(spriteBuffer.size),
           spriteBuffer,
-          cursor.action.pulse(mapModel.world.currentTime)))
+          cursor.action.pulse(model.world.currentTime)))
       case None =>
         Seq()
     }

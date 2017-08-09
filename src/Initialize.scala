@@ -19,7 +19,8 @@ object Initialize {
     val world = World(
       Time.Zero,
       initializeTiles(),
-      js.Array[Orc]())
+      js.Array[Orc](),
+      js.Array[Goal]())
     initializeOrc(world)
   }
 
@@ -28,7 +29,8 @@ object Initialize {
       .map(position => Tile(
         position,
         Shade.None(),
-        None))
+        orc = None,
+        goal = None))
       .map(addTileShade)
       .toJSArray
   }
@@ -71,9 +73,10 @@ object Initialize {
   }
 
   def initializeOrc(world: World): World = {
-    world.execute(Command.InsertOrc(
+    world.execute(Command.InsertOrc(Orc(
+      _,
       Vec2.One * (Dimensions.MapSize / 2).floor,
-      Plan.idle(Time.Zero)))
+      Plan.idle(Time.Zero))))
   }
 
   def initializeCamera(): Camera = {

@@ -23,11 +23,30 @@ object Update {
     message match {
       case Message.Reset() =>
         Initialize.initializeModel()
+      case Message.LeftClick(position) =>
+        updateMapModelLeftClick(model, position)
       case _ =>
         Model.Map(
           updateWorld(model.world, message),
           updateCamera(model.camera, message),
           updateCursor(model.cursor, message))
+    }
+  }
+
+  def updateMapModelLeftClick(model: Model.Map, clickPosition: Vec2): Model = {
+    val action = model.cursor.action
+    action match {
+      case Cursor.Build() =>
+        val newPosition = action.clamp(clickPosition)
+        val topLeft = model.camera.topLeft + newPosition.spriteTopLeft(action.spriteBuffer.size)
+        model.copy(
+          world = model.world.execute(Command.InsertGoal(
+            Blueprint.Headquarters.goal(topLeft, model.world.currentTime))),
+          cursor = model.cursor.copy(
+            action = Cursor.Inspect(),
+            position = Some(clickPosition)).clamp)
+      case _ =>
+        model
     }
   }
 
@@ -107,21 +126,6 @@ object Update {
 
   def updateCursor(cursor: Cursor, message: Message): Cursor = {
     message match {
-      case Message.LeftClick(position) =>
-        val newCursor = cursor.copy(position = Some(position)).clamp
-        newCursor.position match {
-          case Some(_) =>
-            newCursor.action match {
-              case Cursor.Inspect() =>
-                cursor.copy(action = Cursor.Build())
-              case Cursor.Build() =>
-                cursor.copy(action = Cursor.Inspect())
-              case _ =>
-                cursor
-            }
-          case None =>
-            cursor
-        }
       case Message.MouseMove(position) =>
         cursor.copy(position = Some(position)).clamp
       case Message.MouseLeave() =>
