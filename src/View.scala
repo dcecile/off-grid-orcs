@@ -5,15 +5,26 @@ object View {
     val baseColor = tile.structure match {
       case Tile.Trees(shade) =>
         shade match {
-          case Shade.None() =>
+          case Tile.NoShade() =>
             Colors.Forest
-          case Shade.Highlight() =>
-            Colors.ForestHighlight
-          case Shade.Shadow() =>
-            Colors.ForestShadow
+          case Tile.HardHighlight() =>
+            Colors.ForestHardHighlight
+          case Tile.SoftHighlight() =>
+            Colors.ForestSoftHighlight
+          case Tile.SoftShadow() =>
+            Colors.ForestSoftShadow
         }
-      case Tile.Grass() =>
-        Colors.Grass
+      case Tile.Grass(shade) =>
+        shade match {
+          case Tile.NoShade() =>
+            Colors.Grass
+          case Tile.SoftHighlight() =>
+            Colors.GrassSoftHighlight
+          case Tile.SoftShadow() =>
+            Colors.GrassSoftShadow
+          case Tile.HardShadow() =>
+            Colors.GrassHardShadow
+        }
     }
     val withOrc = tile.orc match {
       case Some(_) =>

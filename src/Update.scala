@@ -80,20 +80,88 @@ object Update {
               plan = orc.plan.tail)))
         case chopWood: Step.ChopWood =>
           val tile = world(orc.position)
+          val newShades = updateChoppedWoodShade(
+            tile, world)
           val goal = world(chopWood.goal)
-          println(s"Chop ${orc.position}")
+          val newGoal = goal.copy(
+            toClearPositions = goal.toClearPositions
+              .diff(Seq(orc.position)))
+          val newOrc = orc.copy(
+            plan = orc.plan.tail)
           Seq(
-            Command.UpdateTile(tile.copy(
-              structure = Tile.Grass())),
-            Command.UpdateGoal(goal.copy(
-              toClearPositions = goal.toClearPositions
-                .diff(Seq(orc.position)))),
-            Command.UpdateOrc(orc.copy(
-              plan = orc.plan.tail)))
+            newShades
+              .map(Command.UpdateTile),
+            Seq(
+              Command.UpdateGoal(newGoal),
+              Command.UpdateOrc(newOrc))).flatten
       }
     } else {
       Seq()
     }
+  }
+
+  def updateChoppedWoodShade(newGrass: Tile, world: World): Seq[Tile] = {
+    val brightTrees = mapNearbyTiles(
+      newGrass.position,
+      world,
+      highlightDirections,
+      tile => tile.structure match {
+        case Tile.Trees(_) =>
+          Some(tile.copy(structure =
+            Tile.Trees(Tile.HardHighlight())))
+        case _ =>
+          None
+      }).flatten
+    val normalGrass = mapNearbyTiles(
+      newGrass.position,
+      world,
+      shadowDirections,
+      tile => tile.structure match {
+        case Tile.Grass(_) =>
+          Some(tile.copy(structure =
+            Tile.Grass(Initialize.initializeGrassShade(tile.position))))
+        case _ =>
+          None
+      }).flatten.filter(tile => countShadows(tile.position, world) <= 1)
+    val isShadowGrass = countShadows(newGrass.position, world) >= 1
+    Seq(
+      Seq(newGrass.copy(structure =
+        Tile.Grass(if (isShadowGrass) {
+          Tile.HardShadow()
+        } else {
+          Initialize.initializeGrassShade(newGrass.position)
+        }))),
+      brightTrees,
+      normalGrass).flatten
+  }
+
+  val highlightDirections = Seq(Vec2(-1, 0), Vec2(0, -1))
+
+  val shadowDirections = Seq(Vec2(-1, 0), Vec2(0, -1), Vec2(-1, -1))
+
+  def mapNearbyTiles[A](position: Vec2, world: World, directions: Seq[Vec2], transform: Tile => A): Seq[A] = {
+    directions
+      .map(_ + position)
+      .filter(isPositionValid)
+      .map(world(_))
+      .map(transform)
+  }
+
+  def isPositionValid(position: Vec2): Boolean = {
+    position == position.clamp(Vec2.Zero, Vec2.One * (Dimensions.MapSize - 1))
+  }
+
+  def countShadows(position: Vec2, world: World): Int = {
+    mapNearbyTiles(
+      position,
+      world,
+      shadowDirections.map(_ * -1),
+      tile => tile.structure match {
+        case Tile.Trees(_) =>
+          1
+        case _ =>
+          0
+      }).sum
   }
 
   def updateCamera(camera: Camera, message: Message): Camera = {

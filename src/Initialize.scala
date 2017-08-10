@@ -41,11 +41,11 @@ object Initialize {
       yield Vec2(x.toDouble, y.toDouble)
   }
 
-  def initializeTreesShade(position: Vec2): Shade = {
+  def initializeTreesShade(position: Vec2): Tile.TreesShade = {
     def highlight =
-      Shade.Highlight()
+      Tile.SoftHighlight()
     def shadow =
-      Shade.Shadow()
+      Tile.SoftShadow()
     (position.x % 32, position.y % 32) match {
       // 0, 0
       case (0x00, 0x03) => shadow
@@ -68,7 +68,48 @@ object Initialize {
       case (0x17, 0x1a) => shadow
       case (0x1a, 0x10) => highlight
       // No shade
-      case _ => Shade.None()
+      case _ => Tile.NoShade()
+    }
+  }
+
+  def initializeGrassShade(position: Vec2): Tile.GrassShade = {
+    def highlight =
+      Tile.SoftHighlight()
+    def shadow =
+      Tile.SoftShadow()
+    (position.x % 16, position.y % 16) match {
+      // 0, 0
+      case (0x00, 0x02) => shadow
+      case (0x01, 0x00) => highlight
+      case (0x03, 0x04) => shadow
+      case (0x04, 0x03) => highlight
+      case (0x07, 0x01) => shadow
+      case (0x00, 0x07) => highlight
+      // 0, 1
+      case (0x02, 0x0a) => shadow
+      case (0x06, 0x0f) => highlight
+      case (0x03, 0x0c) => shadow
+      case (0x04, 0x0d) => highlight
+      case (0x05, 0x0b) => shadow
+      case (0x03, 0x08) => highlight
+      // 1, 0
+      case (0x09, 0x03) => shadow
+      case (0x0c, 0x07) => highlight
+      case (0x07, 0x05) => shadow
+      case (0x06, 0x07) => highlight
+      case (0x0d, 0x02) => shadow
+      case (0x0f, 0x01) => highlight
+      // 1, 1
+      case (0x08, 0x09) => shadow
+      case (0x09, 0x0b) => highlight
+      case (0x0a, 0x0f) => shadow
+      case (0x0b, 0x0d) => shadow
+      case (0x0e, 0x0c) => shadow
+      case (0x0c, 0x0a) => highlight
+      case (0x0f, 0x08) => shadow
+      case (0x0d, 0x0e) => highlight
+      // No shade
+      case _ => Tile.NoShade()
     }
   }
 

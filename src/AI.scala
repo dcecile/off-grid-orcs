@@ -44,7 +44,7 @@ object AI {
   }
 
   def pickNearest(orc: Orc, positions: Seq[Vec2]): Vec2 = {
-    positions.minBy(position =>
+    Random.shuffle(positions).minBy(position =>
       (position - orc.position).gridLength)
   }
 
