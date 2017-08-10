@@ -2,17 +2,25 @@ package offGridOrcs
 
 object View {
   def viewTileColor(model: Model.Map, tile: Tile): Vec3 = {
-    val baseColor = tile.shade match {
-      case Shade.None() =>
-        Colors.Forest
-      case Shade.Highlight() =>
-        Colors.ForestHighlight
-      case Shade.Shadow() =>
-        Colors.ForestShadow
+    val baseColor = tile.structure match {
+      case Tile.Trees(shade) =>
+        shade match {
+          case Shade.None() =>
+            Colors.Forest
+          case Shade.Highlight() =>
+            Colors.ForestHighlight
+          case Shade.Shadow() =>
+            Colors.ForestShadow
+        }
+      case Tile.Grass() =>
+        Colors.Grass
     }
     val withOrc = tile.orc match {
       case Some(_) =>
-        Colors.Orc.mix(baseColor, Colors.ForestCover)
+        Colors.Orc.mix(baseColor, tile.structure match {
+          case _: Tile.Trees => Colors.ForestCover
+          case _ => 0
+        })
       case None =>
         baseColor
     }

@@ -25,6 +25,9 @@ final case class Vec2(x: Double, y: Double) {
   def length =
     Math.sqrt(lengthSquared)
 
+  def gridLength =
+    x.abs + y.abs
+
   def floor =
     Vec2(x.floor, y.floor)
 
@@ -42,4 +45,9 @@ final case class Vec2(x: Double, y: Double) {
 object Vec2 {
   val Zero = Vec2(0, 0)
   val One = Vec2(1, 1)
+  val FourDirections = Seq(
+    Vec2(-1, 0),
+    Vec2(+1, 0),
+    Vec2(0, -1),
+    Vec2(0, +1))
 }

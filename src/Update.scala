@@ -61,34 +61,38 @@ object Update {
   }
 
   def animateWorld(world: World): World = {
-    val commands = animateOrc(
-      world.orcs(0), world.currentTime)
-    world.execute(commands)
+    world.orcs.foldLeft(world)({ (world, orc) =>
+      val commands = executeOrcPlan(
+        AI.reevaluatePlan(orc, world),
+        world)
+      world.execute(commands)
+    })
   }
 
-  def animateOrc(orc: Orc, currentTime: Time): Seq[Command] = {
-    val newOrc = executeOrcPlan(orc, currentTime)
-    Seq(Command.UpdateOrc(newOrc))
-  }
-
-  def executeOrcPlan(orc: Orc, currentTime: Time): Orc = {
-    orc.plan.head match {
-      case Step.Walk(direction, arrivalTime) =>
-        if (arrivalTime.isReached(currentTime)) {
-          orc.copy(
-            position = orc.position + direction,
-            plan = refreshOrcPlan(orc.plan.tail, currentTime))
-        } else {
-          orc
-        }
-    }
-  }
-
-  def refreshOrcPlan(plan: Plan, currentTime: Time): Plan = {
-    if (plan.steps.isEmpty) {
-      Plan.idle(currentTime)
+  def executeOrcPlan(orc: Orc, world: World): Seq[Command] = {
+    val step = orc.plan.head
+    if (step.completionTime.isReached(world.currentTime)) {
+      step match {
+        case walk: Step.Walk =>
+          Seq(
+            Command.UpdateOrc(orc.copy(
+              position = walk.destination,
+              plan = orc.plan.tail)))
+        case chopWood: Step.ChopWood =>
+          val tile = world(orc.position)
+          val goal = world(chopWood.goal)
+          println(s"Chop ${orc.position}")
+          Seq(
+            Command.UpdateTile(tile.copy(
+              structure = Tile.Grass())),
+            Command.UpdateGoal(goal.copy(
+              toClearPositions = goal.toClearPositions
+                .diff(Seq(orc.position)))),
+            Command.UpdateOrc(orc.copy(
+              plan = orc.plan.tail)))
+      }
     } else {
-      plan
+      Seq()
     }
   }
 

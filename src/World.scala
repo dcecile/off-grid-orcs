@@ -16,6 +16,9 @@ final case class World(currentTime: Time, tiles: js.Array[Tile], orcs: js.Array[
     goals(id.index)
   }
 
+  def activeGoals =
+    goals.filter(_.isActive)
+
   def execute(commands: Seq[Command]): World = {
     commands.foldLeft(this)(_.execute(_))
   }
@@ -46,6 +49,14 @@ final case class World(currentTime: Time, tiles: js.Array[Tile], orcs: js.Array[
         this
       case Command.UpdateGoal(newGoal) =>
         setGoal(newGoal)
+        if (!newGoal.isActive) {
+          for (position <- newGoal.allPositions) {
+            setTileGoal(position, None)
+          }
+        }
+        this
+      case Command.UpdateTile(newTile) =>
+        setTile(newTile)
         this
     }
   }
@@ -70,6 +81,13 @@ final case class World(currentTime: Time, tiles: js.Array[Tile], orcs: js.Array[
     tiles.update(
       index,
       tiles(index).copy(goal = goal.map(_.id)))
+  }
+
+  def setTile(newTile: Tile): Unit = {
+    val index = computeTileIndex(newTile.position)
+    tiles.update(
+      index,
+      newTile)
   }
 
   def computeTileIndex(position: Vec2): Int = {

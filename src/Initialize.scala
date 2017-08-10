@@ -28,25 +28,25 @@ object Initialize {
     initializeTilePositions()
       .map(position => Tile(
         position,
-        Shade.None(),
+        Tile.Trees(
+          initializeTreesShade(position)),
         orc = None,
         goal = None))
-      .map(addTileShade)
       .toJSArray
   }
 
   def initializeTilePositions(): Seq[Vec2] = {
     val mapRange = 0 to (Dimensions.MapSize.toInt - 1)
-    for (x <- mapRange; y <- mapRange)
+    for (y <- mapRange; x <- mapRange)
       yield Vec2(x.toDouble, y.toDouble)
   }
 
-  def addTileShade(tile: Tile): Tile = {
+  def initializeTreesShade(position: Vec2): Shade = {
     def highlight =
-      tile.copy(shade = Shade.Highlight())
+      Shade.Highlight()
     def shadow =
-      tile.copy(shade = Shade.Shadow())
-    (tile.position.x % 32, tile.position.y % 32) match {
+      Shade.Shadow()
+    (position.x % 32, position.y % 32) match {
       // 0, 0
       case (0x00, 0x03) => shadow
       case (0x09, 0x05) => highlight
@@ -68,15 +68,14 @@ object Initialize {
       case (0x17, 0x1a) => shadow
       case (0x1a, 0x10) => highlight
       // No shade
-      case _ => tile
+      case _ => Shade.None()
     }
   }
 
   def initializeOrc(world: World): World = {
-    world.execute(Command.InsertOrc(Orc(
-      _,
-      Vec2.One * (Dimensions.MapSize / 2).floor,
-      Plan.idle(Time.Zero))))
+    val position = Vec2.One * (Dimensions.MapSize / 2).floor
+    world.execute(Command.InsertOrc(
+      Orc(_, position, Plan.Zero)))
   }
 
   def initializeCamera(): Camera = {

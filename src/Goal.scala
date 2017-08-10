@@ -4,4 +4,5 @@ final case class Goal(id: Reference.Goal, allPositions: Seq[Vec2], toClearPositi
   val color = Colors.Goal
   val pulse = Pulse(
     Time.Zero, Timings.GoalPulse, Colors.GoalPulseStart, 1.0, Pulse.NegativeCosine())
+  val isActive = toClearPositions.nonEmpty
 }
