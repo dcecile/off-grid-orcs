@@ -25,11 +25,29 @@ object View {
           case Tile.HardShadow() =>
             Colors.GrassHardShadow
         }
+      case Tile.Building(stage) =>
+        stage match {
+          case Tile.Flooring() =>
+            Colors.BuildingFlooring
+          case Tile.Walls() =>
+            Colors.BuildingWalls
+          case Tile.Roof() =>
+            Colors.BuildingRoof
+          case Tile.Decal() =>
+            Colors.BuildingDecal
+        }
     }
     val withOrc = tile.orc match {
       case Some(_) =>
         Colors.Orc.mix(baseColor, tile.structure match {
-          case _: Tile.Trees => Colors.ForestCover
+          case Tile.Trees(_) =>
+            Colors.ForestCover
+          case Tile.Building(Tile.Walls()) =>
+            Colors.BuildingWallsCover
+          case Tile.Building(Tile.Roof()) =>
+            Colors.BuildingRoofCover
+          case Tile.Building(Tile.Decal()) =>
+            Colors.BuildingRoofCover
           case _ => 0
         })
       case None =>

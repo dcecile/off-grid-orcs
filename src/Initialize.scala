@@ -20,7 +20,7 @@ object Initialize {
       Time.Zero,
       initializeTiles(),
       js.Array[Orc](),
-      js.Array[Goal]())
+      js.Array[Option[Goal]]())
     initializeOrc(world)
   }
 
@@ -115,8 +115,8 @@ object Initialize {
 
   def initializeOrc(world: World): World = {
     val position = Vec2.One * (Dimensions.MapSize / 2).floor
-    world.execute(Command.InsertOrc(
-      Orc(_, position, Plan.Zero)))
+    world.execute(Seq(Command.InsertOrc(
+      Orc(_, position, Plan.Zero))))
   }
 
   def initializeCamera(): Camera = {

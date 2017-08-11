@@ -33,7 +33,7 @@ final case class SimpleCanvas(element: html.Canvas, context: dom.CanvasRendering
 object SimpleCanvas {
   def createLowRez(): SimpleCanvas = {
     val canvasSize = Dimensions.LowRez.toInt
-    val elementSize = s"${canvasSize * 6}px"
+    val elementSize = s"${64 * 6}px"
     val document = dom.document
     val element = document.createElement("canvas").asInstanceOf[html.Canvas]
     element.width = canvasSize

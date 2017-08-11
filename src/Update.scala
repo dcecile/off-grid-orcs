@@ -40,8 +40,13 @@ object Update {
         val newPosition = action.clamp(clickPosition)
         val topLeft = model.camera.topLeft + newPosition.spriteTopLeft(action.spriteBuffer.size)
         model.copy(
-          world = model.world.execute(Command.InsertGoal(
-            Blueprint.Headquarters.goal(topLeft, model.world.currentTime))),
+          world = model.world.execute(Seq(Command.InsertGoal(
+            Goal.fromBlueprint(
+              _,
+              topLeft,
+              Blueprint.Headquarters,
+              model.world.currentTime,
+              model.world)))),
           cursor = model.cursor.copy(
             action = Cursor.Inspect(),
             position = Some(clickPosition)).clamp)
@@ -72,79 +77,91 @@ object Update {
   def executeOrcPlan(orc: Orc, world: World): Seq[Command] = {
     val step = orc.plan.head
     if (step.completionTime.isReached(world.currentTime)) {
-      step match {
-        case walk: Step.Walk =>
-          Seq(
-            Command.UpdateOrc(orc.copy(
-              position = walk.destination,
-              plan = orc.plan.tail)))
-        case chopWood: Step.ChopWood =>
-          val tile = world(orc.position)
-          val newShades = updateChoppedWoodShade(
-            tile, world)
-          val goal = world(chopWood.goal)
-          val newGoal = goal.copy(
-            toClearPositions = goal.toClearPositions
-              .diff(Seq(orc.position)))
-          val newOrc = orc.copy(
-            plan = orc.plan.tail)
-          Seq(
-            newShades
-              .map(Command.UpdateTile),
-            Seq(
-              Command.UpdateGoal(newGoal),
-              Command.UpdateOrc(newOrc))).flatten
-      }
+      executeOrcStep(
+        orc.copy(plan = orc.plan.tail),
+        world,
+        step)
     } else {
       Seq()
     }
   }
 
-  def updateChoppedWoodShade(newGrass: Tile, world: World): Seq[Tile] = {
-    val brightTrees = mapNearbyTiles(
-      newGrass.position,
-      world,
-      highlightDirections,
-      tile => tile.structure match {
-        case Tile.Trees(_) =>
-          Some(tile.copy(structure =
-            Tile.Trees(Tile.HardHighlight())))
-        case _ =>
-          None
-      }).flatten
-    val normalGrass = mapNearbyTiles(
-      newGrass.position,
-      world,
-      shadowDirections,
-      tile => tile.structure match {
-        case Tile.Grass(_) =>
-          Some(tile.copy(structure =
-            Tile.Grass(Initialize.initializeGrassShade(tile.position))))
-        case _ =>
-          None
-      }).flatten.filter(tile => countShadows(tile.position, world) <= 1)
-    val isShadowGrass = countShadows(newGrass.position, world) >= 1
+  def executeOrcStep(orc: Orc, world: World, step: Step): Seq[Command] = {
+    step match {
+      case walk: Step.Walk =>
+        Seq(Command.UpdateOrc(orc.copy(
+          position = walk.destination)))
+      case _: Step.ChopWood =>
+        (updateChoppedWoodShade(world(orc.position), world)
+          ++ Seq(Command.UpdateOrc(orc)))
+      case _: Step.BuildFlooring =>
+        executeOrcBuildStep(orc, world, Tile.Flooring())
+      case _: Step.BuildWalls =>
+        executeOrcBuildStep(orc, world, Tile.Walls())
+      case _: Step.BuildRoof =>
+        (executeOrcBuildStep(orc, world, Tile.Roof())
+          ++ updateBuildingShade(orc.position, world))
+      case _: Step.AddDecal =>
+        (executeOrcBuildStep(orc, world, Tile.Decal())
+          ++ updateBuildingShade(orc.position, world))
+    }
+  }
+
+  def executeOrcBuildStep(orc: Orc, world: World, stage: Tile.BuildingStage): Seq[Command] = {
+    val oldTile = world(orc.position)
+    val newTile = oldTile.copy(structure = Tile.Building(stage))
     Seq(
-      Seq(newGrass.copy(structure =
-        Tile.Grass(if (isShadowGrass) {
-          Tile.HardShadow()
-        } else {
-          Initialize.initializeGrassShade(newGrass.position)
-        }))),
-      brightTrees,
-      normalGrass).flatten
+      Seq(
+        Command.UpdateTile(newTile),
+        Command.UpdateOrc(orc))).flatten
+  }
+
+  def updateChoppedWoodShade(newGrass: Tile, world: World): Seq[Command.UpdateTile] = {
+    val isShadowGrass = countShadows(newGrass.position, world) >= 1
+    val newGrassShade = newGrass.copy(structure =
+      Tile.Grass(if (isShadowGrass) {
+        Tile.HardShadow()
+      } else {
+        Initialize.initializeGrassShade(newGrass.position)
+      }))
+    val brightTrees = findNearbyTiles(newGrass.position, world, highlightDirections)
+      .collect(tile => tile.structure match {
+        case Tile.Trees(_) =>
+          tile.copy(structure =
+            Tile.Trees(Tile.HardHighlight()))
+      })
+    val normalGrass = findNearbyTiles(newGrass.position, world, shadowDirections)
+      .collect(tile => tile.structure match {
+        case Tile.Grass(_) =>
+          tile.copy(structure =
+            Tile.Grass(Initialize.initializeGrassShade(tile.position)))
+      })
+      .filter(tile =>
+        countShadows(tile.position, world) <= 1)
+    Seq(Seq(newGrassShade), brightTrees, normalGrass)
+      .flatten
+      .map(Command.UpdateTile)
+  }
+
+  def updateBuildingShade(buildingPosition: Vec2, world: World): Seq[Command.UpdateTile] = {
+    findNearbyTiles(buildingPosition, world, shadowDirections)
+      .collect(tile => tile.structure match {
+        case Tile.Grass(_) =>
+          tile.copy(structure =
+            Tile.Grass(Tile.HardShadow()))
+      })
+      .map(Command.UpdateTile)
   }
 
   val highlightDirections = Seq(Vec2(-1, 0), Vec2(0, -1))
 
   val shadowDirections = Seq(Vec2(-1, 0), Vec2(0, -1), Vec2(-1, -1))
 
-  def mapNearbyTiles[A](position: Vec2, world: World, directions: Seq[Vec2], transform: Tile => A): Seq[A] = {
+  def findNearbyTiles(position: Vec2, world: World, directions: Seq[Vec2]): Seq[Tile] = {
     directions
       .map(_ + position)
       .filter(isPositionValid)
       .map(world(_))
-      .map(transform)
   }
 
   def isPositionValid(position: Vec2): Boolean = {
@@ -152,16 +169,13 @@ object Update {
   }
 
   def countShadows(position: Vec2, world: World): Int = {
-    mapNearbyTiles(
-      position,
-      world,
-      shadowDirections.map(_ * -1),
-      tile => tile.structure match {
-        case Tile.Trees(_) =>
-          1
-        case _ =>
-          0
-      }).sum
+    findNearbyTiles(position, world, shadowDirections.map(_ * -1))
+      .collect(tile => tile.structure match {
+        case Tile.Trees(_) => ()
+        case Tile.Building(Tile.Roof()) => ()
+        case Tile.Building(Tile.Decal()) => ()
+      })
+      .length
   }
 
   def updateCamera(camera: Camera, message: Message): Camera = {

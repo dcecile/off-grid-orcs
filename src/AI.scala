@@ -31,16 +31,51 @@ object AI {
   def choosePlan(orc: Orc, world: World): Plan = {
     val plan = world.activeGoals.headOption match {
       case Some(goal) =>
-        val destination = pickNearest(
-          orc, goal.toClearPositions)
-        Some(Plan(
-          Seq(),
-          walkTo(destination, orc, world).followedBy(Timings.ChopWoodSpeed, Step.ChopWood(goal.id, _))))
+        choosePlanForGoal(
+          orc,
+          world,
+          goal,
+          Consideration(
+            goal.toClearPositions,
+            Timings.ChopWoodSpeed,
+            Step.ChopWood),
+          Consideration(
+            goal.toBuildFlooringPositions,
+            Timings.BuildSpeed,
+            Step.BuildFlooring),
+          Consideration(
+            goal.toBuildWallsPositions,
+            Timings.BuildSpeed,
+            Step.BuildWalls),
+          Consideration(
+            goal.toBuildRoofPositions,
+            Timings.BuildSpeed,
+            Step.BuildRoof),
+          Consideration(
+            goal.toAddDecalPositions,
+            Timings.BuildSpeed,
+            Step.AddDecal))
       case None =>
         None
     }
     plan.getOrElse(
       buildIdlePlan(orc.position, world.currentTime))
+  }
+
+  final case class Consideration(positions: Seq[Vec2], stepSpeed: Duration, partialStep: Time => Step)
+
+  def choosePlanForGoal(orc: Orc, world: World, goal: Goal, considerations: Consideration*): Option[Plan] = {
+    considerations
+      .toStream
+      .filter(_.positions.nonEmpty)
+      .map({ case Consideration(positions, stepSpeed, partialStep) =>
+        val destination = pickNearest(orc, positions)
+        Plan(
+          Seq(),
+          walkTo(destination, orc, world)
+            .followedBy(stepSpeed, partialStep))
+      })
+      .headOption
   }
 
   def pickNearest(orc: Orc, positions: Seq[Vec2]): Vec2 = {
