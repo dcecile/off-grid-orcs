@@ -13,7 +13,6 @@ final class Loop(var model: Model, val canvas: SimpleCanvas) {
 
   def send(message: Message): Unit = {
     model = Update.updateModel(model, message)
-
     draw()
     if (!isAnimationFrameRequested) {
       previousJSTimestamp = None
@@ -64,7 +63,8 @@ final class Loop(var model: Model, val canvas: SimpleCanvas) {
   }
 
   def aggregateColorsOneX(model: Model.Map): Unit = {
-    val tiles = model.world.tiles
+    val world = model.world
+    val tiles = world.tiles
     val lowRez = Dimensions.LowRez.toInt
     val mapSize = Dimensions.MapSize.toInt
     val cameraTopLeft = model.camera.topLeft
@@ -75,7 +75,7 @@ final class Loop(var model: Model, val canvas: SimpleCanvas) {
         val tileX = x + cameraX
         val tileY = y + cameraY
         val tile = tiles(tileX + tileY * mapSize)
-        val color = View.viewTileColor(model, tile)
+        val color = View.viewTileColor(world, tile)
         val i = (x + y * lowRez) * 3
         colorBuffer.update(i + 0, color.r)
         colorBuffer.update(i + 1, color.g)
@@ -85,7 +85,8 @@ final class Loop(var model: Model, val canvas: SimpleCanvas) {
   }
 
   def aggregateColorsTwoX(model: Model.Map): Unit = {
-    val tiles = model.world.tiles
+    val world = model.world
+    val tiles = world.tiles
     val lowRez = Dimensions.LowRez.toInt
     val mapSize = Dimensions.MapSize.toInt
     val cameraTopLeft = model.camera.topLeft
@@ -96,13 +97,13 @@ final class Loop(var model: Model, val canvas: SimpleCanvas) {
         val tilesX = x * 2 + cameraX
         val tilesY = y * 2 + cameraY
         val tile00 = tiles((tilesX + 0) + (tilesY + 0) * mapSize)
-        val color00 = View.viewTileColor(model, tile00)
+        val color00 = View.viewTileColor(world, tile00)
         val tile01 = tiles((tilesX + 1) + (tilesY + 0) * mapSize)
-        val color01 = View.viewTileColor(model, tile01)
+        val color01 = View.viewTileColor(world, tile01)
         val tile10 = tiles((tilesX + 0) + (tilesY + 1) * mapSize)
-        val color10 = View.viewTileColor(model, tile10)
+        val color10 = View.viewTileColor(world, tile10)
         val tile11 = tiles((tilesX + 1) + (tilesY + 1) * mapSize)
-        val color11 = View.viewTileColor(model, tile11)
+        val color11 = View.viewTileColor(world, tile11)
         val i = (x + y * lowRez) * 3
         colorBuffer.update(
           i + 0,
