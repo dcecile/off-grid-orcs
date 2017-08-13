@@ -34,6 +34,21 @@ object BitmapLibrary {
       o, z, o)
   }
 
+  val MapButton = createButtonBitmap(Colors.OverlayFaintForeground, Colors.OverlayFaintBackground)
+    .expand(4 + Glyph.size, 4 + Glyph.size)
+
+  val MapReverseButton = createButtonBitmap(Colors.OverlayFaintReverse, Colors.OverlayFaintBackground)
+    .expand(4 + Glyph.size, 4 + Glyph.size)
+
+  val MapPausedOverlay = {
+    val pair = Seq(Vec3.Zero, Colors.OverlayPause)
+    val pairCount = Dimensions.LowRez.toInt / 2
+    val evenRow = Seq.fill(pairCount)(pair).flatten
+    val oddRow = Seq.fill(pairCount)(pair.reverse).flatten
+    val pixels = Seq.fill(pairCount)(evenRow ++ oddRow).flatten
+    Bitmap.build(pairCount * 2)(pixels: _*)
+  }
+
   val InspectScreen = {
     val o = Colors.OverlayBoldBackground
     val Z = Colors.OverlayBoldBackground + Colors.OverlayBoldForeground
@@ -83,17 +98,13 @@ object BitmapLibrary {
     }
   }
 
-  val TooltipOutline = (1 to 10).map({ glyphs =>
-    createButtonBitmap(Vec3.Zero, Vec3.One)
-      .expand(4 + Glyph.size + (Glyph.size + 1) * (glyphs - 1), 4 + Glyph.size)
-  })
-
   def createButtonBitmap(border: Vec3, inside: Vec3): Bitmap = {
-    val o = inside
+    val o = Vec3.Zero
+    val z = inside
     val Z = inside + border
     Bitmap.build(3)(
       o, Z, o,
-      Z, o, Z,
+      Z, z, Z,
       o, Z, o)
   }
 

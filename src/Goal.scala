@@ -3,7 +3,7 @@ package offGridOrcs
 final case class Goal(id: Reference.Goal, topLeft: Vec2, blueprint: Blueprint, startTime: Time, allPositions: Seq[Vec2], toClearPositions: Seq[Vec2], toBuildFlooringPositions: Seq[Vec2], toBuildWallsPositions: Seq[Vec2], toBuildRoofPositions: Seq[Vec2], toAddDecalPositions: Seq[Vec2], stockpilePositions: Seq[Vec2]) {
   val color = Colors.Goal
   val pulse = Pulse(
-    Time.Zero, Timings.GoalPulse, Colors.GoalPulseStart, 1.0, Pulse.NegativeCosine())
+    startTime, Timings.GoalPulse, Colors.GoalPulseStart, 1.0, Pulse.Sine())
   val isActive = Seq(
     toClearPositions,
     toBuildFlooringPositions,

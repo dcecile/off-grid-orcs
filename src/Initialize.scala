@@ -7,10 +7,11 @@ object Initialize {
 
   def initializeMapModel(cursorPosition: Vec2): Model.Map = {
     Model.Map(
-      InitializeWorld.initialize(),
-      initializeCamera(),
-      initializeCursor(cursorPosition),
-      Model.InspectionMode.Status())
+      world = InitializeWorld.initialize(),
+      isPaused = false,
+      camera = initializeCamera(),
+      cursor = initializeCursor(cursorPosition),
+      previousInspectionMode = Model.InspectionMode.Status())
   }
 
   def initializeCamera(): Camera = {

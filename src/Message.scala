@@ -12,6 +12,8 @@ object Message {
 
 sealed trait MapMessage
 object MapMessage {
+  final case class ChangeAction(action: Cursor.Action) extends MapMessage
+  final case class Pause() extends MapMessage
   final case class StartScrollX(speed: Double) extends MapMessage
   final case class StopScrollX() extends MapMessage
   final case class StartScrollY(speed: Double) extends MapMessage

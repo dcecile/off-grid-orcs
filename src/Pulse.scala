@@ -18,9 +18,9 @@ object Pulse {
       input
   }
 
-  final case class NegativeCosine() extends Curve {
+  final case class Sine() extends Curve {
     def apply(input: Double): Double =
-      (-Math.cos(input * (2 * Math.PI)) + 1) / 2
+      (Math.sin(input * (2 * Math.PI)) + 1) / 2
   }
 
   val One = Pulse(Time.Zero, Duration(1), 1, 1, Linear())

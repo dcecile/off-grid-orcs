@@ -25,9 +25,13 @@ object Colors {
   val Goal = Vec3.hexRGB(0x801000)
   val GoalPulseStart = 0.0
   val Overlay = Vec3.hexRGB(0xdbaaff)
+  val OverlayFaintForeground = Overlay * 0.3
+  val OverlayFaintReverse = Overlay * -0.2
+  val OverlayFaintBackground = Overlay * 0.1
   val OverlayBoldForeground = Overlay * 0.6
   val OverlayBoldReverse = Overlay * -0.4
   val OverlayBoldBackground = Overlay * 0.3
   val OverlayCursorBold = Vec3.hexRGB(0xfff578)
   val OverlayCursorFaint = OverlayCursorBold.darken(0.6)
+  val OverlayPause = Vec3.hexRGB(0x04061b)
 }

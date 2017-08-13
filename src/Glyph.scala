@@ -7,8 +7,14 @@ final case class Glyph(char: Char, bits: Seq[Seq[Double]], flexs: Seq[Int]) {
   lazy val boldLargeBitmap = makeLargeBitmap(
     Colors.OverlayBoldForeground)
 
-  lazy val reverseBitmap = makeSmallBitmap(
+  lazy val boldReverseBitmap = makeSmallBitmap(
     Colors.OverlayBoldReverse)
+
+  lazy val faintBitmap = makeSmallBitmap(
+    Colors.OverlayFaintForeground)
+
+  lazy val faintReverseBitmap = makeSmallBitmap(
+    Colors.OverlayFaintReverse)
 
   private def makeSmallBitmap(color: Vec3): Bitmap = {
     val pixels = bits

@@ -96,7 +96,7 @@ object ViewInspection {
         if (isActive) {
           _.boldBitmap
         } else {
-          _.reverseBitmap
+          _.boldReverseBitmap
         }))
   }
 

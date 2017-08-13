@@ -9,11 +9,14 @@ object UpdateMap {
     message match {
       case MapMessage.Reset() =>
         Initialize.initializeModel()
+      case MapMessage.Pause() =>
+        model.copy(
+          isPaused = !model.isPaused)
       case Message.LeftClick(_) =>
         handleLeftClick(model)
       case _ =>
         model.copy(
-          world = UpdateWorld.update(model.world, message),
+          world = UpdateWorld.update(model.isPaused, model.world, message),
           camera = updateCamera(model.camera, message),
           cursor = updateCursor(model.cursor, message))
     }
@@ -48,6 +51,12 @@ object UpdateMap {
   def translateKeyDown(key: Key): Option[MapMessage] = {
     val scrollSpeed = 1.0
     key match {
+      case Shortcuts.Map.ActionInspect => Some(
+        MapMessage.ChangeAction(Cursor.Inspect()))
+      case Shortcuts.Map.ActionBuild => Some(
+        MapMessage.ChangeAction(Cursor.Build()))
+      case Shortcuts.Map.Pause => Some(
+        MapMessage.Pause())
       case Shortcuts.Map.ScrollLeft => Some(
         MapMessage.StartScrollX(-scrollSpeed))
       case Shortcuts.Map.ScrollRight => Some(
@@ -142,6 +151,13 @@ object UpdateMap {
 
   def updateCursor(cursor: Cursor.Map, message: MapMessage): Cursor.Map = {
     message match {
+      case MapMessage.ChangeAction(action) =>
+        cursor.action match {
+          case Cursor.ZoomedOut(_) =>
+            (cursor.copy(action = Cursor.ZoomedOut(action)): Cursor.Map).clamp
+          case zoomedInAction =>
+            cursor.copy(action = action).clamp
+        }
       case MapMessage.ZoomIn() =>
         cursor.action match {
           case Cursor.ZoomedOut(zoomedInAction) =>
