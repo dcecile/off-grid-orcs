@@ -28,4 +28,6 @@ object Colors {
   val OverlayBoldForeground = Overlay * 0.6
   val OverlayBoldReverse = Overlay * -0.4
   val OverlayBoldBackground = Overlay * 0.3
+  val OverlayCursorBold = Vec3.hexRGB(0xfff578)
+  val OverlayCursorFaint = OverlayCursorBold.darken(0.6)
 }

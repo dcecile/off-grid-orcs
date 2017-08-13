@@ -9,7 +9,8 @@ object Initialize {
     Model.Map(
       InitializeWorld.initialize(),
       initializeCamera(),
-      initializeCursor(cursorPosition))
+      initializeCursor(cursorPosition),
+      Model.InspectionMode.Status())
   }
 
   def initializeCamera(): Camera = {
@@ -20,9 +21,9 @@ object Initialize {
       zoomOut = ZoomOut.OneX())
   }
 
-  def initializeCursor(position: Vec2): Cursor = {
-    Cursor(
+  def initializeCursor(position: Vec2): Cursor.Map = {
+    (Cursor(
       Some(position),
-      Cursor.Build()).clamp
+      Cursor.Build()): Cursor.Map).clamp
   }
 }

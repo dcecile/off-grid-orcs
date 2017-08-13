@@ -24,6 +24,16 @@ object BitmapLibrary {
       x, o, x)
   }
 
+  val OverlayCursor = {
+    val o = Vec3.Zero
+    val z = Colors.OverlayCursorFaint
+    val Z = Colors.OverlayCursorBold
+    Bitmap.build(3)(
+      o, z, o,
+      z, Z, z,
+      o, z, o)
+  }
+
   val InspectScreen = {
     val o = Colors.OverlayBoldBackground
     val Z = Colors.OverlayBoldBackground + Colors.OverlayBoldForeground

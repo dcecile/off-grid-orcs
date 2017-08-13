@@ -1,11 +1,14 @@
 package offGridOrcs
 
-final case class Cursor(position: Option[Vec2], action: Cursor.Action) {
-  def clamp =
+final case class Cursor[A <: Cursor.Action](position: Option[Vec2], action: A) {
+  def clamp: Cursor[A] =
     this.copy(position = position.map(action.clamp))
 }
 
 object Cursor {
+  type Map = Cursor[Cursor.Action]
+  type Inspection = Cursor[Cursor.Overlay]
+
   sealed trait Action {
     val bitmap: Bitmap
     val pulse = Pulse.One
@@ -31,5 +34,9 @@ object Cursor {
 
   final case class ZoomedOut(zoomedInAction: Action) extends Action {
     val bitmap = BitmapLibrary.ZoomedOutCursor
+  }
+
+  final case class Overlay() extends Action {
+    val bitmap = BitmapLibrary.OverlayCursor
   }
 }

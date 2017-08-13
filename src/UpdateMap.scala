@@ -2,27 +2,47 @@ package offGridOrcs
 
 object UpdateMap {
   def update(model: Model.Map, message: Message): Model = {
-    translate(message) match {
+    translate(model, message)
+  }
+
+  def update(model: Model.Map, message: MapMessage): Model = {
+    message match {
       case MapMessage.Reset() =>
         Initialize.initializeModel()
-      case Message.LeftClick(position) =>
-        handleLeftClick(model, position)
-      case otherMessage =>
-        Model.Map(
-          UpdateWorld.update(model.world, otherMessage),
-          updateCamera(model.camera, otherMessage),
-          updateCursor(model.cursor, otherMessage))
+      case Message.LeftClick(_) =>
+        handleLeftClick(model)
+      case _ =>
+        model.copy(
+          world = UpdateWorld.update(model.world, message),
+          camera = updateCamera(model.camera, message),
+          cursor = updateCursor(model.cursor, message))
     }
   }
 
-  def translate(message: Message): MapMessage = {
-    message match {
+  def translate(model: Model.Map, message: Message): Model = {
+    val newModel = message match {
+      case Message.MouseMove(position) =>
+        moveMouse(model, Some(position))
+      case Message.LeftClick(position) =>
+        moveMouse(model, Some(position))
+      case Message.MouseLeave() =>
+        moveMouse(model, None)
+      case _ => model
+    }
+    val newMessage = message match {
       case Message.KeyDown(key) =>
         translateKeyDown(key).getOrElse(message)
       case Message.KeyUp(key) =>
         translateKeyUp(key).getOrElse(message)
       case _ => message
     }
+    update(newModel, newMessage)
+  }
+
+  def moveMouse(model: Model.Map, position: Option[Vec2]): Model.Map = {
+    model.copy(
+      cursor = model.cursor.copy(
+        position = position).clamp)
   }
 
   def translateKeyDown(key: Key): Option[MapMessage] = {
@@ -60,9 +80,9 @@ object UpdateMap {
     }
   }
 
-  def handleLeftClick(model: Model.Map, clickPosition: Vec2): Model = {
+  def handleLeftClick(model: Model.Map): Model = {
     val action = model.cursor.action
-    val newPosition = action.clamp(clickPosition)
+    val newPosition = model.cursor.position.get
     val topLeft = model.camera.topLeft + newPosition.spriteTopLeft(action.bitmap.size)
     action match {
       case Cursor.Build() =>
@@ -71,11 +91,18 @@ object UpdateMap {
             model.world,
             topLeft,
             BlueprintLibrary.Headquarters),
-          cursor = model.cursor.copy(
+          cursor = (model.cursor.copy(
             action = Cursor.Inspect(),
-            position = Some(clickPosition)).clamp)
+            position = Some(newPosition)): Cursor.Map).clamp)
       case Cursor.Inspect() =>
-        Model.Inspection(topLeft + Vec2(2, 2), model)
+        Model.Inspection(
+          topLeft + Vec2(2, 2),
+          Vec2(1, 1),
+          model.previousInspectionMode,
+          Cursor(
+            Some(newPosition),
+            Cursor.Overlay()),
+          model)
       case _ =>
         model
     }
@@ -113,12 +140,8 @@ object UpdateMap {
     }
   }
 
-  def updateCursor(cursor: Cursor, message: MapMessage): Cursor = {
+  def updateCursor(cursor: Cursor.Map, message: MapMessage): Cursor.Map = {
     message match {
-      case Message.MouseMove(position) =>
-        cursor.copy(position = Some(position)).clamp
-      case Message.MouseLeave() =>
-        cursor.copy(position = None)
       case MapMessage.ZoomIn() =>
         cursor.action match {
           case Cursor.ZoomedOut(zoomedInAction) =>
@@ -131,7 +154,7 @@ object UpdateMap {
           case Cursor.ZoomedOut(_) =>
             cursor
           case zoomedInAction =>
-            cursor.copy(action = Cursor.ZoomedOut(zoomedInAction)).clamp
+            (cursor.copy(action = Cursor.ZoomedOut(zoomedInAction)): Cursor.Map).clamp
         }
       case _ =>
         cursor

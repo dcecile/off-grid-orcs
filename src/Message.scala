@@ -1,6 +1,6 @@
 package offGridOrcs
 
-sealed trait Message extends MapMessage
+sealed trait Message extends MapMessage with InspectionMessage
 object Message {
   final case class Animate(timeStep: Duration) extends Message
   final case class KeyDown(key: Key) extends Message
@@ -18,5 +18,12 @@ object MapMessage {
   final case class StopScrollY() extends MapMessage
   final case class ZoomIn() extends MapMessage
   final case class ZoomOut() extends MapMessage
-  final case class Reset() extends Message
+  final case class Reset() extends MapMessage
+}
+
+sealed trait InspectionMessage
+object InspectionMessage {
+  final case class Close() extends InspectionMessage
+  final case class Move(direction: Vec2) extends InspectionMessage
+  final case class ChangeMode(newMode: Model.InspectionMode) extends InspectionMessage
 }

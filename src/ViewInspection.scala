@@ -2,14 +2,51 @@ package offGridOrcs
 
 object ViewInspection {
   def view(model: Model.Inspection): Seq[Sprite] = {
-    val tile = model.mapModel.world(model.topLeft)
+    val titleAndDescription = getTitleAndDescription(model)
     (viewBackground()
-      ++ viewGrid()
-      ++ viewTitle(tile)
+      ++ viewGrid(model)
+      ++ viewTitle(titleAndDescription._1)
       ++ viewCloseButton()
-      ++ viewDetails(tile)
-      ++ viewModeButton('A', 0, true)
-      ++ viewModeButton('S', 1, false))
+      ++ viewDetails(titleAndDescription._2)
+      ++ viewModeButton('A', 0, model.mode == Model.InspectionMode.Status())
+      ++ viewModeButton('S', 1, model.mode == Model.InspectionMode.Stock())
+      ++ viewCursor(model))
+  }
+
+  def getTitleAndDescription(model: Model.Inspection): (String, Seq[String]) = {
+    val tile = model.mapModel.world(model.topLeft + model.selection)
+    val healthyAndGreen = Seq("HEALTHY", "GREEN")
+    val noStock = Seq("NO STOCK")
+    tile match {
+      case Tile(_, _, Some(_), _) =>
+        ("ORC", model.mode match {
+          case Model.InspectionMode.Status() =>
+            healthyAndGreen
+          case Model.InspectionMode.Stock() =>
+            noStock
+        })
+      case Tile(_, Tile.Trees(_), _, _) =>
+        ("TREES", model.mode match {
+          case Model.InspectionMode.Status() =>
+            healthyAndGreen
+          case Model.InspectionMode.Stock() =>
+            noStock
+        })
+      case Tile(_, Tile.Grass(_), _, _) =>
+        ("GRASS", model.mode match {
+          case Model.InspectionMode.Status() =>
+            healthyAndGreen
+          case Model.InspectionMode.Stock() =>
+            noStock
+        })
+      case Tile(_, Tile.Building(_), _, _) =>
+        ("HQ", model.mode match {
+          case Model.InspectionMode.Status() =>
+            Seq("STURDY")
+          case Model.InspectionMode.Stock() =>
+            noStock
+        })
+    }
   }
 
   def viewBackground(): Seq[Sprite] = {
@@ -18,19 +55,14 @@ object ViewInspection {
       BitmapLibrary.InspectScreen))
   }
 
-  def viewGrid(): Seq[Sprite] = {
+  def viewGrid(model: Model.Inspection): Seq[Sprite] = {
+    val i = model.selection.x.toInt + model.selection.y.toInt * 3
     Seq(Sprite(
       Vec2(4, 5),
-      BitmapLibrary.InspectGrid(0)))
+      BitmapLibrary.InspectGrid(i)))
   }
 
-  def viewTitle(tile: Tile): Seq[Sprite] = {
-    val text = tile match {
-      case Tile(_, _, Some(_), _) => "ORC"
-      case Tile(_, Tile.Trees(_), _, _) => "TREES"
-      case Tile(_, Tile.Grass(_), _, _) => "GRASS"
-      case Tile(_, Tile.Building(_), _, _) => "HQ"
-    }
+  def viewTitle(text: String): Seq[Sprite] = {
     Glyph.getSprites(Vec2(17, 4), text, _.boldLargeBitmap)
   }
 
@@ -68,15 +100,8 @@ object ViewInspection {
         }))
   }
 
-  def viewDetails(tile: Tile): Seq[Sprite] = {
+  def viewDetails(lines: Seq[String]): Seq[Sprite] = {
     val topLeft = Vec2(4, 18)
-    val healthyAndGreen = Seq("HEALTHY", "GREEN")
-    val lines = tile match {
-      case Tile(_, _, Some(_), _) => healthyAndGreen
-      case Tile(_, Tile.Trees(_), _, _) => healthyAndGreen
-      case Tile(_, Tile.Grass(_), _, _) => healthyAndGreen
-      case Tile(_, Tile.Building(_), _, _) => Seq("STURDY")
-    }
     lines
       .zip(Stream.iterate(0)(_ + 1))
       .map({ case (line, index) => Glyph.getSprites(
@@ -85,5 +110,9 @@ object ViewInspection {
         _.boldBitmap)
       })
       .flatten
+  }
+
+  def viewCursor(model: Model.Inspection): Seq[Sprite] = {
+    ViewMap.viewCursor(model.cursor, Time.Zero)
   }
 }

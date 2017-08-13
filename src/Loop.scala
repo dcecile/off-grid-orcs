@@ -120,10 +120,12 @@ final class Loop(var model: Model, val canvas: SimpleCanvas) {
 
   def overlaySprites(model: Model.Map): Unit = {
     overlaySprites(
-      View.viewHeadsUpDisplay(model))
+      View.viewMapOverlay(model))
   }
 
   def overlaySprites(model: Model.Inspection): Unit = {
+    overlaySprites(
+      ViewMap.viewCursor(model.mapModel))
     overlaySprites(
       View.viewInspectionScreen(model))
   }
