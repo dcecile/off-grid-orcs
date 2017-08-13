@@ -5,9 +5,9 @@ import org.scalajs.dom
 object Subscribe {
   def subscribeToWindowEvents(send: Message => Unit): Unit = {
     dom.window.onkeydown =
-      sendKeyMessage(translateKeyDown, send)
+      sendKeyMessage(Message.KeyDown, send)
     dom.window.onkeyup =
-      sendKeyMessage(translateKeyUp, send)
+      sendKeyMessage(Message.KeyUp, send)
   }
 
   def subscribeToCanvasEvents(canvas: SimpleCanvas, send: Message => Unit): Unit = {
@@ -33,50 +33,7 @@ object Subscribe {
     send(message(messagePosition))
   }
 
-  def sendKeyMessage(translate: dom.KeyboardEvent => Option[Message], send: Message => Unit)(event: dom.KeyboardEvent): Unit = {
-    translate(event).foreach(send(_))
-  }
-
-  val ScrollLeft = "ArrowLeft"
-  val ScrollRight = "ArrowRight"
-  val ScrollUp = "ArrowUp"
-  val ScrollDown = "ArrowDown"
-  val ScrollSpeed = 1.0
-  val ZoomIn = "c"
-  val ZoomOut = "x"
-  val Reset = "Backspace"
-
-  def translateKeyDown(event: dom.KeyboardEvent): Option[Message] = {
-    event.key match {
-      case ScrollLeft => Some(
-        Message.StartScrollX(-ScrollSpeed))
-      case ScrollRight => Some(
-        Message.StartScrollX(+ScrollSpeed))
-      case ScrollUp => Some(
-        Message.StartScrollY(-ScrollSpeed))
-      case ScrollDown => Some(
-        Message.StartScrollY(+ScrollSpeed))
-      case ZoomIn => Some(
-        Message.ZoomIn())
-      case ZoomOut => Some(
-        Message.ZoomOut())
-      case Reset => Some(
-        Message.Reset())
-      case _ => None
-    }
-  }
-
-  def translateKeyUp(event: dom.KeyboardEvent): Option[Message] = {
-    event.key match {
-      case ScrollLeft => Some(
-        Message.StopScrollX())
-      case ScrollRight => Some(
-        Message.StopScrollX())
-      case ScrollUp => Some(
-        Message.StopScrollY())
-      case ScrollDown => Some(
-        Message.StopScrollY())
-      case _ => None
-    }
+  def sendKeyMessage(message: Key => Message, send: Message => Unit)(event: dom.KeyboardEvent): Unit = {
+    send(message(Key(event.key)))
   }
 }

@@ -1,7 +1,7 @@
 package offGridOrcs
 
 object UpdateWorld {
-  def update(world: World, message: Message): World = {
+  def update(world: World, message: MapMessage): World = {
     message match {
       case Message.Animate(duration) =>
         animateWorld(world.copy(currentTime =

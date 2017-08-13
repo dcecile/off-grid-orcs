@@ -2,16 +2,61 @@ package offGridOrcs
 
 object UpdateMap {
   def update(model: Model.Map, message: Message): Model = {
-    message match {
-      case Message.Reset() =>
+    translate(message) match {
+      case MapMessage.Reset() =>
         Initialize.initializeModel()
       case Message.LeftClick(position) =>
         handleLeftClick(model, position)
-      case _ =>
+      case otherMessage =>
         Model.Map(
-          UpdateWorld.update(model.world, message),
-          updateCamera(model.camera, message),
-          updateCursor(model.cursor, message))
+          UpdateWorld.update(model.world, otherMessage),
+          updateCamera(model.camera, otherMessage),
+          updateCursor(model.cursor, otherMessage))
+    }
+  }
+
+  def translate(message: Message): MapMessage = {
+    message match {
+      case Message.KeyDown(key) =>
+        translateKeyDown(key).getOrElse(message)
+      case Message.KeyUp(key) =>
+        translateKeyUp(key).getOrElse(message)
+      case _ => message
+    }
+  }
+
+  def translateKeyDown(key: Key): Option[MapMessage] = {
+    val scrollSpeed = 1.0
+    key match {
+      case Shortcuts.Map.ScrollLeft => Some(
+        MapMessage.StartScrollX(-scrollSpeed))
+      case Shortcuts.Map.ScrollRight => Some(
+        MapMessage.StartScrollX(+scrollSpeed))
+      case Shortcuts.Map.ScrollUp => Some(
+        MapMessage.StartScrollY(-scrollSpeed))
+      case Shortcuts.Map.ScrollDown => Some(
+        MapMessage.StartScrollY(+scrollSpeed))
+      case Shortcuts.Map.ZoomIn => Some(
+        MapMessage.ZoomIn())
+      case Shortcuts.Map.ZoomOut => Some(
+        MapMessage.ZoomOut())
+      case Shortcuts.Map.Reset => Some(
+        MapMessage.Reset())
+      case _ => None
+    }
+  }
+
+  def translateKeyUp(key: Key): Option[MapMessage] = {
+    key match {
+      case Shortcuts.Map.ScrollLeft => Some(
+        MapMessage.StopScrollX())
+      case Shortcuts.Map.ScrollRight => Some(
+        MapMessage.StopScrollX())
+      case Shortcuts.Map.ScrollUp => Some(
+        MapMessage.StopScrollY())
+      case Shortcuts.Map.ScrollDown => Some(
+        MapMessage.StopScrollY())
+      case _ => None
     }
   }
 
@@ -36,7 +81,7 @@ object UpdateMap {
     }
   }
 
-  def updateCamera(camera: Camera, message: Message): Camera = {
+  def updateCamera(camera: Camera, message: MapMessage): Camera = {
     message match {
       case Message.Animate(duration) =>
         if (camera.velocity != Vec2.Zero) {
@@ -47,41 +92,41 @@ object UpdateMap {
         } else {
           camera
         }
-      case Message.StartScrollX(speed) =>
+      case MapMessage.StartScrollX(speed) =>
         camera.copy(velocity =
           camera.velocity.copy(x = speed))
-      case Message.StopScrollX() =>
+      case MapMessage.StopScrollX() =>
         camera.copy(velocity =
           camera.velocity.copy(x = 0))
-      case Message.StartScrollY(speed) =>
+      case MapMessage.StartScrollY(speed) =>
         camera.copy(velocity =
           camera.velocity.copy(y = speed))
-      case Message.StopScrollY() =>
+      case MapMessage.StopScrollY() =>
         camera.copy(velocity =
           camera.velocity.copy(y = 0))
-      case Message.ZoomIn() =>
+      case MapMessage.ZoomIn() =>
         camera.changeZoomOut(ZoomOut.OneX())
-      case Message.ZoomOut() =>
+      case MapMessage.ZoomOut() =>
         camera.changeZoomOut(ZoomOut.TwoX())
       case _ =>
         camera
     }
   }
 
-  def updateCursor(cursor: Cursor, message: Message): Cursor = {
+  def updateCursor(cursor: Cursor, message: MapMessage): Cursor = {
     message match {
       case Message.MouseMove(position) =>
         cursor.copy(position = Some(position)).clamp
       case Message.MouseLeave() =>
         cursor.copy(position = None)
-      case Message.ZoomIn() =>
+      case MapMessage.ZoomIn() =>
         cursor.action match {
           case Cursor.ZoomedOut(zoomedInAction) =>
             cursor.copy(action = zoomedInAction).clamp
           case _ =>
             cursor
         }
-      case Message.ZoomOut() =>
+      case MapMessage.ZoomOut() =>
         cursor.action match {
           case Cursor.ZoomedOut(_) =>
             cursor
