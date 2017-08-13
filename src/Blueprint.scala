@@ -1,6 +1,6 @@
 package offGridOrcs
 
-final case class Blueprint(cursorSpriteBuffer: SpriteBuffer, buildingPositions: Seq[Vec2], decalPositions: Seq[Vec2], clearingPositions: Seq[Vec2], stockpilePositions: Seq[Vec2])
+final case class Blueprint(cursorBitmap: Bitmap, buildingPositions: Seq[Vec2], decalPositions: Seq[Vec2], clearingPositions: Seq[Vec2], stockpilePositions: Seq[Vec2])
 
 object Blueprint {
   sealed trait Element
@@ -13,7 +13,7 @@ object Blueprint {
   }
 
   def build(size: Int)(elements: Option[Element]*): Blueprint = {
-    val cursorSpriteBuffer = SpriteBuffer.build(size)(elements map {
+    val cursorBitmap = Bitmap.build(size)(elements map {
       case None =>
         Vec3.Zero
       case Some(Element.Building()) =>
@@ -42,26 +42,10 @@ object Blueprint {
       }
     }
     Blueprint(
-      cursorSpriteBuffer,
+      cursorBitmap,
       buildingPositions = positionTuples.flatMap(_._1),
       decalPositions = positionTuples.flatMap(_._2),
       clearingPositions = positionTuples.flatMap(_._3),
       stockpilePositions = positionTuples.flatMap(_._4))
-  }
-
-  val Headquarters = {
-    val o = None
-    val c = Some(Element.Clearing())
-    val s = Some(Element.Stockpile())
-    val Z = Some(Element.Building())
-    val D = Some(Element.Decal())
-    build(7)(
-      o, c, c, c, c, c, o,
-      c, c, Z, Z, Z, c, c,
-      c, Z, Z, Z, Z, Z, c,
-      c, Z, Z, D, Z, Z, c,
-      s, Z, Z, c, Z, Z, c,
-      c, c, Z, c, Z, c, c,
-      o, c, c, c, c, c, o)
   }
 }

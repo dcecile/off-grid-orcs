@@ -24,4 +24,8 @@ object Colors {
   val BlueprintPulseStart = 0.2
   val Goal = Vec3.hexRGB(0x801000)
   val GoalPulseStart = 0.0
+  val Overlay = Vec3.hexRGB(0xdbaaff)
+  val OverlayBoldForeground = Overlay * 0.6
+  val OverlayBoldReverse = Overlay * -0.4
+  val OverlayBoldBackground = Overlay * 0.3
 }

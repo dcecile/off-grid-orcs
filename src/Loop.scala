@@ -29,6 +29,11 @@ final class Loop(var model: Model, val canvas: SimpleCanvas) {
         overlaySprites(mapModel)
         canvas.drawPixels(colorBuffer)
         requestAnimationFrame()
+      case inspectionModel: Model.Inspection =>
+        aggregateColors(inspectionModel.mapModel)
+        overlaySprites(inspectionModel)
+        canvas.drawPixels(colorBuffer)
+        requestAnimationFrame()
     }
   }
 
@@ -113,24 +118,34 @@ final class Loop(var model: Model, val canvas: SimpleCanvas) {
   }
 
   def overlaySprites(model: Model.Map): Unit = {
+    overlaySprites(
+      View.viewHeadsUpDisplay(model))
+  }
+
+  def overlaySprites(model: Model.Inspection): Unit = {
+    overlaySprites(
+      View.viewInspectionScreen(model))
+  }
+
+  def overlaySprites(sprites: Seq[Sprite]): Unit = {
     val lowRez = Dimensions.LowRez.toInt
-    for (sprite <- View.viewSprites(model)) {
-      val buffer = sprite.buffer
+    for (sprite <- sprites) {
+      val bitmap = sprite.bitmap
       val offsetX = sprite.position.x.toInt
       val offsetY = sprite.position.y.toInt
-      for (y <- 0 until buffer.size) {
-        for (x <- 0 until buffer.size) {
-          val i = (x + y * buffer.size) * 3
+      for (y <- 0 until bitmap.size) {
+        for (x <- 0 until bitmap.size) {
+          val i = (x + y * bitmap.size) * 3
           val j = (x + offsetX + (y + offsetY) * lowRez) * 3
           colorBuffer.update(
             j + 0,
-            colorBuffer(j + 0) + buffer(i + 0) * sprite.alpha)
+            colorBuffer(j + 0) + bitmap(i + 0) * sprite.alpha)
           colorBuffer.update(
             j + 1,
-            colorBuffer(j + 1) + buffer(i + 1) * sprite.alpha)
+            colorBuffer(j + 1) + bitmap(i + 1) * sprite.alpha)
           colorBuffer.update(
             j + 2,
-            colorBuffer(j + 2) + buffer(i + 2) * sprite.alpha)
+            colorBuffer(j + 2) + bitmap(i + 2) * sprite.alpha)
         }
       }
     }

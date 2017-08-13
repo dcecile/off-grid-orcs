@@ -26,7 +26,7 @@ final case class SimpleCanvas(element: html.Canvas, context: dom.CanvasRendering
   def drawTitle(): Unit = {
     element.style.cursor = "pointer"
     context.clearRect(0, 0, Dimensions.LowRez, Dimensions.LowRez)
-    element.style.backgroundImage = s"url(${Bitmaps.titleScreen})"
+    element.style.backgroundImage = s"url(${BitmapLibrary.TitleScreen})"
   }
 }
 

@@ -7,10 +7,10 @@ final case class Cursor(position: Option[Vec2], action: Cursor.Action) {
 
 object Cursor {
   sealed trait Action {
-    val spriteBuffer: SpriteBuffer
+    val bitmap: Bitmap
     val pulse = Pulse.One
     def clamp(oldPosition: Vec2): Vec2 = {
-      val size = spriteBuffer.size
+      val size = bitmap.size
       val topLeft = oldPosition.spriteTopLeft(size)
       val newPosition = topLeft.clamp(
         Vec2.Zero,
@@ -20,16 +20,16 @@ object Cursor {
   }
 
   final case class Inspect() extends Action {
-    val spriteBuffer = Bitmaps.inspectCursor
+    val bitmap = BitmapLibrary.InspectCursor
   }
 
   final case class Build() extends Action {
-    val spriteBuffer = Blueprint.Headquarters.cursorSpriteBuffer
+    val bitmap = BlueprintLibrary.Headquarters.cursorBitmap
     override val pulse = Pulse(
       Time.Zero, Timings.BlueprintPulse, Colors.BlueprintPulseStart, 1.0, Pulse.Linear())
   }
 
   final case class ZoomedOut(zoomedInAction: Action) extends Action {
-    val spriteBuffer = Bitmaps.zoomedOutCursor
+    val bitmap = BitmapLibrary.ZoomedOutCursor
   }
 }

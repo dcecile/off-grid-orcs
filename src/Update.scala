@@ -7,6 +7,8 @@ object Update {
         updateTitleModel(titleModel, message)
       case mapModel: Model.Map =>
         updateMapModel(mapModel, message)
+      case inspectionModel: Model.Inspection =>
+        updateInspectionModel(inspectionModel, message)
     }
   }
 
@@ -35,21 +37,23 @@ object Update {
 
   def updateMapModelLeftClick(model: Model.Map, clickPosition: Vec2): Model = {
     val action = model.cursor.action
+    val newPosition = action.clamp(clickPosition)
+    val topLeft = model.camera.topLeft + newPosition.spriteTopLeft(action.bitmap.size)
     action match {
       case Cursor.Build() =>
-        val newPosition = action.clamp(clickPosition)
-        val topLeft = model.camera.topLeft + newPosition.spriteTopLeft(action.spriteBuffer.size)
         model.copy(
           world = model.world.execute(Seq(Command.InsertGoal(
             Goal.fromBlueprint(
               _,
               topLeft,
-              Blueprint.Headquarters,
+              BlueprintLibrary.Headquarters,
               model.world.currentTime,
               model.world)))),
           cursor = model.cursor.copy(
             action = Cursor.Inspect(),
             position = Some(clickPosition)).clamp)
+      case Cursor.Inspect() =>
+        Model.Inspection(topLeft + Vec2(2, 2), model)
       case _ =>
         model
     }
@@ -232,6 +236,15 @@ object Update {
         }
       case _ =>
         cursor
+    }
+  }
+
+  def updateInspectionModel(model: Model.Inspection, message: Message): Model = {
+    message match {
+      case Message.LeftClick(position) =>
+        updateMapModel(model.mapModel, Message.MouseMove(position))
+      case _ =>
+        model
     }
   }
 }
