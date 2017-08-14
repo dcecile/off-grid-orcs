@@ -20,7 +20,8 @@ object InitializeWorld {
         Tile.Trees(
           initializeTreesShade(position)),
         orc = None,
-        goal = None))
+        goal = None,
+        stock = Stock.Zero))
       .toJSArray
   }
 
@@ -105,6 +106,6 @@ object InitializeWorld {
   def initializeOrc(world: World): World = {
     val position = Vec2.One * (Dimensions.MapSize / 2).floor
     world.execute(Seq(Command.InsertOrc(
-      Orc(_, position, Plan.Zero))))
+      Orc(_, position, Plan.Zero, Stock.Zero))))
   }
 }

@@ -27,15 +27,19 @@ object ViewTile {
             Colors.ForestSoftShadow
         }
       case Tile.Grass(shade) =>
-        shade match {
-          case Tile.NoShade() =>
-            Colors.Grass
-          case Tile.SoftHighlight() =>
-            Colors.GrassSoftHighlight
-          case Tile.SoftShadow() =>
-            Colors.GrassSoftShadow
-          case Tile.HardShadow() =>
-            Colors.GrassHardShadow
+        if (tile.stock.wood > 0) {
+          Colors.WoodPile
+        } else {
+          shade match {
+            case Tile.NoShade() =>
+              Colors.Grass
+            case Tile.SoftHighlight() =>
+              Colors.GrassSoftHighlight
+            case Tile.SoftShadow() =>
+              Colors.GrassSoftShadow
+            case Tile.HardShadow() =>
+              Colors.GrassHardShadow
+          }
         }
       case Tile.Building(stage) =>
         stage match {

@@ -6,6 +6,7 @@ sealed trait Step {
 
 object Step {
   final case class Walk(destination: Vec2, completionTime: Time) extends Step
+  final case class DropStock(completionTime: Time) extends Step
   final case class ChopWood(completionTime: Time) extends Step
   final case class BuildFlooring(completionTime: Time) extends Step
   final case class BuildWalls(completionTime: Time) extends Step

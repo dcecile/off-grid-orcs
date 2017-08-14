@@ -25,58 +25,114 @@ object AI {
         true
       case Precondition.NoGoals() =>
         world.activeGoals.isEmpty
+      case Precondition.CanCarryMore() =>
+        orc.canCarryMore
     }
   }
 
   def choosePlan(orc: Orc, world: World): Plan = {
-    val plan = world.activeGoals.headOption match {
-      case Some(goal) =>
-        choosePlanForGoal(
-          orc,
-          world,
-          goal,
-          Consideration(
-            goal.toClearPositions,
-            Timings.ChopWoodSpeed,
-            Step.ChopWood),
-          Consideration(
-            goal.toBuildFlooringPositions,
-            Timings.BuildSpeed,
-            Step.BuildFlooring),
-          Consideration(
-            goal.toBuildWallsPositions,
-            Timings.BuildSpeed,
-            Step.BuildWalls),
-          Consideration(
-            goal.toBuildRoofPositions,
-            Timings.BuildSpeed,
-            Step.BuildRoof),
-          Consideration(
-            goal.toAddDecalPositions,
-            Timings.BuildSpeed,
-            Step.AddDecal))
-      case None =>
-        None
+    def choices = PlanChoice.First(
+      PlanChoice.If(
+        !orc.canCarryMore,
+        designDeliveryPlan(orc, world)),
+      designBuildPlan(orc, world),
+      PlanChoice.If(
+        orc.isCarrying,
+        designDeliveryPlan(orc, world)))
+
+    choosePlan(choices)
+      .getOrElse(designIdlePlan(orc, world))
+  }
+
+  def choosePlan(planChoice: PlanChoice): Option[Plan] = {
+    planChoice match {
+      case PlanChoice.First(choices) =>
+        choices
+          .toStream
+          .map(choosePlan)
+          .flatten
+          .headOption
+      case PlanChoice.Best(choices) =>
+        val plans = choices
+          .map(choosePlan)
+          .flatten
+        plans match {
+          case Nil => None
+          case _ => Some(plans.minBy(plan =>
+            plan.steps.last.completionTime.frameNumber))
+        }
+      case conditional: PlanChoice.If =>
+        if (conditional.condition) {
+          choosePlan(conditional.choice)
+        } else {
+          None
+        }
+      case one: PlanChoice.One =>
+        one.plan
     }
-    plan.getOrElse(
-      buildIdlePlan(orc.position, world.currentTime))
   }
 
-  final case class Consideration(positions: Seq[Vec2], stepSpeed: Duration, partialStep: Time => Step)
+  def designDeliveryPlan(orc: Orc, world: World): PlanChoice = {
+    def subplan = designDestinationPlan(orc, world, Seq())(_, _, _)
+    PlanChoice.First(
+      subplan(
+        world.activeGoals.flatMap(_.stockpilePositions),
+        Timings.DropSpeed, Step.DropStock),
+      subplan(
+        Seq(orc.position),
+        Timings.DropSpeed, Step.DropStock))
+  }
 
-  def choosePlanForGoal(orc: Orc, world: World, goal: Goal, considerations: Consideration*): Option[Plan] = {
-    considerations
-      .toStream
-      .filter(_.positions.nonEmpty)
-      .map({ case Consideration(positions, stepSpeed, partialStep) =>
+  def designBuildPlan(orc: Orc, world: World): PlanChoice = {
+    PlanChoice.Best(
+      world.activeGoals.map(
+        designBuildPlan(orc, world, _)))
+  }
+
+  def designBuildPlan(orc: Orc, world: World, goal: Goal): PlanChoice = {
+    val preconditions = Seq(Precondition.CanCarryMore())
+    def subplan = designDestinationPlan(orc, world, preconditions)(_, _, _)
+    PlanChoice.First(
+      subplan(
+        goal.toClearPositions
+          .intersect(goal.stockpilePositions),
+        Timings.ChopWoodSpeed,
+        Step.ChopWood),
+      subplan(
+        goal.toClearPositions,
+        Timings.ChopWoodSpeed,
+        Step.ChopWood),
+      PlanChoice.If(
+        orc.isCarrying,
+        designDeliveryPlan(orc, world)),
+      subplan(
+        goal.toBuildFlooringPositions,
+        Timings.BuildSpeed,
+        Step.BuildFlooring),
+      subplan(
+        goal.toBuildWallsPositions,
+        Timings.BuildSpeed,
+        Step.BuildWalls),
+      subplan(
+        goal.toBuildRoofPositions,
+        Timings.BuildSpeed,
+        Step.BuildRoof),
+      subplan(
+        goal.toAddDecalPositions,
+        Timings.BuildSpeed,
+        Step.AddDecal))
+  }
+
+  def designDestinationPlan(orc: Orc, world: World, preconditions: Seq[Precondition])(positions: Seq[Vec2], stepSpeed: Duration, partialStep: Time => Step): PlanChoice =
+    PlanChoice.If(
+      positions.nonEmpty,
+      PlanChoice({
         val destination = pickNearest(orc, positions)
-        Plan(
-          Seq(),
+        Some(Plan(
+          preconditions,
           walkTo(destination, orc, world)
-            .followedBy(stepSpeed, partialStep))
-      })
-      .headOption
-  }
+            .followedBy(stepSpeed, partialStep)))
+      }))
 
   def pickNearest(orc: Orc, positions: Seq[Vec2]): Vec2 = {
     Random.shuffle(positions).minBy(position =>
@@ -95,7 +151,9 @@ object AI {
       Seq.fill(directionSequence.length)(Timings.WalkSpeed))
   }
 
-  def buildIdlePlan(currentPosition: Vec2, currentTime: Time): Plan = {
+  def designIdlePlan(orc: Orc, world: World): Plan = {
+    val currentPosition = orc.position
+    val currentTime = world.currentTime
     val directions = Vec2.FourDirections
     val delays = Timings.IdleSequence
     val loops = 3

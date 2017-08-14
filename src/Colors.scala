@@ -10,6 +10,7 @@ object Colors {
   val GrassSoftHighlight = Grass.lighten(0.05)
   val GrassSoftShadow = Grass.darken(0.04)
   val GrassHardShadow = Grass.darken(0.15)
+  val WoodPile = Vec3.hexRGB(0x726938)
   val BuildingFlooring = Vec3.hexRGB(0x2f2c05)
   val BuildingWalls = Vec3.hexRGB(0xece589)
   val BuildingRoof = Vec3.hexRGB(0xa38d19)

@@ -8,6 +8,7 @@ object Timings {
     Duration(240))
   val WalkSpeed = Duration(5)
   val ChopWoodSpeed = Duration(20)
+  val DropSpeed = Duration(20)
   val BuildSpeed = Duration(20)
   val BlueprintPulse = Duration(90)
   val GoalPulse = Duration(300)

@@ -38,8 +38,19 @@ object UpdateWorld {
         Seq(Command.UpdateOrc(orc.copy(
           position = walk.destination)))
       case _: Step.ChopWood =>
-        (updateChoppedWoodShade(world(orc.position), world)
-          ++ Seq(Command.UpdateOrc(orc)))
+        val newOrc = orc.copy(
+          stock = orc.stock + Stock.Wood(1))
+        (updateChoppedWoodShade(world(newOrc.position), world)
+          ++ Seq(Command.UpdateOrc(newOrc)))
+      case _: Step.DropStock =>
+        val oldTile = world(orc.position)
+        val newTile = oldTile.copy(
+          stock = oldTile.stock + orc.stock)
+        val newOrc = orc.copy(
+          stock = Stock.Zero)
+        Seq(
+          Command.UpdateTile(newTile),
+          Command.UpdateOrc(newOrc))
       case _: Step.BuildFlooring =>
         executeOrcBuildStep(orc, world, Tile.Flooring())
       case _: Step.BuildWalls =>

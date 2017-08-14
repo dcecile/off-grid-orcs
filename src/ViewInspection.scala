@@ -2,7 +2,7 @@ package offGridOrcs
 
 object ViewInspection {
   def view(model: Model.Inspection): Seq[Sprite] = {
-    val titleAndDescription = getTitleAndDescription(model)
+    val titleAndDescription = getTitleAndDetails(model)
     (viewBackground()
       ++ viewGrid(model)
       ++ viewTitle(titleAndDescription._1)
@@ -13,39 +13,43 @@ object ViewInspection {
       ++ viewCursor(model))
   }
 
-  def getTitleAndDescription(model: Model.Inspection): (String, Seq[String]) = {
-    val tile = model.mapModel.world(model.topLeft + model.selection)
+  def getTitleAndDetails(model: Model.Inspection): (String, Seq[String]) = {
+    val world = model.mapModel.world
+    val tile = world(model.topLeft + model.selection)
     val healthyAndGreen = Seq("HEALTHY", "GREEN")
     val noStock = Seq("NO STOCK")
-    tile match {
-      case Tile(_, _, Some(_), _) =>
-        ("ORC", model.mode match {
-          case Model.InspectionMode.Status() =>
-            healthyAndGreen
-          case Model.InspectionMode.Stock() =>
-            noStock
-        })
-      case Tile(_, Tile.Trees(_), _, _) =>
-        ("TREES", model.mode match {
-          case Model.InspectionMode.Status() =>
-            healthyAndGreen
-          case Model.InspectionMode.Stock() =>
-            noStock
-        })
-      case Tile(_, Tile.Grass(_), _, _) =>
-        ("GRASS", model.mode match {
-          case Model.InspectionMode.Status() =>
-            healthyAndGreen
-          case Model.InspectionMode.Stock() =>
-            noStock
-        })
-      case Tile(_, Tile.Building(_), _, _) =>
-        ("HQ", model.mode match {
-          case Model.InspectionMode.Status() =>
-            Seq("STURDY")
-          case Model.InspectionMode.Stock() =>
-            noStock
-        })
+    val fullData = tile match {
+      case Tile(_, _, Some(orcID), _, _) =>
+        val orc = world(orcID)
+        ("ORC",
+          healthyAndGreen,
+          getStockDetails(orc.stock))
+      case Tile(_, Tile.Trees(_), _, _, _) =>
+        ("TREES",
+          healthyAndGreen,
+          getStockDetails(tile.stock))
+      case Tile(_, Tile.Grass(_), _, _, _) =>
+        ("GRASS",
+          healthyAndGreen,
+          getStockDetails(tile.stock))
+      case Tile(_, Tile.Building(_), _, _, _) =>
+        ("HQ",
+          Seq("STURDY"),
+          noStock)
+    }
+    (fullData._1, model.mode match {
+      case Model.InspectionMode.Status() =>
+        fullData._2
+      case Model.InspectionMode.Stock() =>
+        fullData._3
+    })
+  }
+
+  def getStockDetails(stock: Stock): Seq[String] = {
+    if (stock.wood == 0) {
+      Seq("NO STOCK")
+    } else {
+      Seq(s"${stock.wood} WOOD")
     }
   }
 
