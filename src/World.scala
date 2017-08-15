@@ -28,6 +28,13 @@ final case class World(currentTime: Time, tiles: js.Array[Tile], orcs: js.Array[
   def activeGoals: Seq[Goal] =
     goals.flatten
 
+  def foldLeft[A](select: World => Seq[A], transform: (World, A) => Seq[Command]): World = {
+    select(this).foldLeft(this)({ (world, item) =>
+      val commands = transform(world, item)
+      world.execute(commands)
+    })
+  }
+
   def execute(commands: Seq[Command]): World = {
     if (commands.nonEmpty) {
       commands.foldLeft(this)(_.execute(_))
@@ -52,6 +59,9 @@ final case class World(currentTime: Time, tiles: js.Array[Tile], orcs: js.Array[
           setTileOrc(oldOrc.position, None)
           setTileOrc(newOrc.position, Some(newOrc))
         }
+        this
+      case Command.UpdateBuilding(newBuilding) =>
+        setBuilding(newBuilding)
         this
       case Command.InsertGoal(partialGoal) =>
         val id = Reference.Goal(goals.length)
@@ -80,7 +90,7 @@ final case class World(currentTime: Time, tiles: js.Array[Tile], orcs: js.Array[
             setTileGoal(position, None)
           }
           val newBuildingID = Reference.Building(buildings.length)
-          val newBuilding = Building.fromBlueprint(newBuildingID, oldGoal.topLeft, oldGoal.blueprint)
+          val newBuilding = Building.fromBlueprint(newBuildingID, oldGoal.topLeft, oldGoal.blueprint, this)
           setBuilding(newBuilding)
           for (position <- newBuilding.positions) {
             setTileBuilding(position, Some(newBuilding))

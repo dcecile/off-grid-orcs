@@ -25,7 +25,7 @@ object ViewInspection {
           getStockDetails(orc.stock))
       case Tile(_, _, _, Some(buildingID), _, _) =>
         val building = world(buildingID)
-        (building.name,
+        (building.blueprint.name,
           Seq("STURDY"),
           getStockDetails(building.stock))
       case Tile(_, Tile.Trees(_), _, _, _, _) =>

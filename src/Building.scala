@@ -2,20 +2,25 @@ package offGridOrcs
 
 final case class Building(
   id: Reference.Building,
-  name: String,
+  blueprint: Blueprint,
   positions: Seq[Vec2],
-  entrance: Vec2,
-  stock: Stock
+  entrancePosition: Vec2,
+  stock: Stock,
+  currentOrcs: Int,
+  nextOrcTime: Option[Time]
 )
 
 object Building {
-  def fromBlueprint(id: Reference.Building, topLeft: Vec2, blueprint: Blueprint): Building = {
+  def fromBlueprint(id: Reference.Building, topLeft: Vec2, blueprint: Blueprint, world: World): Building = {
+    val currentOrcs = if (blueprint.isHeadquarters) { 1 } else { 0 }
     Building(
       id,
-      name = blueprint.name,
+      blueprint = blueprint,
       positions = blueprint.buildingPositions
         .map(topLeft + _),
-      entrance = topLeft + blueprint.decalPosition,
-      stock = Stock.Zero)
+      entrancePosition = topLeft + blueprint.decalPosition,
+      stock = Stock.Zero,
+      currentOrcs = currentOrcs,
+      nextOrcTime = Some(world.currentTime + Timings.OrcHousingSpeed))
   }
 }

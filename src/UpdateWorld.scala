@@ -12,26 +12,45 @@ object UpdateWorld {
   }
 
   def animateWorld(world: World): World = {
-    val newWorld = updatePlans(world)
-    newWorld.orcs.foldLeft(newWorld)({ (world, orc) =>
-      val commands = executeOrcPlan(orc, world)
-      world.execute(commands)
-    })
+    world
+      .foldLeft(_.buildings, findNextOrcs)
+      .foldLeft(_.orcs, updateOrcPlan)
+      .foldLeft(_.orcs, executeOrcPlan)
   }
 
-  def updatePlans(world: World): World = {
-    world.orcs.foldLeft(world)({ (world, orc) =>
-      AI.reevaluatePlan(orc, world) match {
-        case Some(newPlan) =>
-          world.execute(Seq(Command.UpdateOrc(
-            orc.copy(plan = newPlan))))
-        case None =>
-          world
-      }
-    })
+  def updateOrcPlan(world: World, orc: Orc): Seq[Command] = {
+    AI.reevaluatePlan(orc, world) match {
+      case Some(newPlan) =>
+        Seq(Command.UpdateOrc(
+          orc.copy(plan = newPlan)))
+      case None =>
+        Seq()
+    }
   }
 
-  def executeOrcPlan(orc: Orc, world: World): Seq[Command] = {
+  def findNextOrcs(world: World, building: Building): Seq[Command] = {
+    building.nextOrcTime match {
+      case Some(time) =>
+        if (time.isReached(world.currentTime)) {
+          Seq(
+            Command.InsertOrc(Orc(
+              _, building.entrancePosition, Plan.Zero, Stock.Zero)),
+            Command.UpdateBuilding(building.copy(
+              currentOrcs = building.currentOrcs + 1,
+              nextOrcTime = if (building.currentOrcs + 1 < building.blueprint.housingCapcity) {
+                Some(world.currentTime + Timings.OrcHousingSpeed)
+              } else {
+                None
+              })))
+        } else {
+          Seq()
+        }
+      case None =>
+        Seq()
+    }
+  }
+
+  def executeOrcPlan(world: World, orc: Orc): Seq[Command] = {
     val step = orc.plan.head
     if (step.completionTime.isReached(world.currentTime)) {
       executeOrcStep(
@@ -157,9 +176,9 @@ object UpdateWorld {
   }
 
   def pickNewBlueprint(world: World): Blueprint = {
-    val hasHQGoal = world.activeGoals.exists(_.blueprint.name == "HQ")
-    val hasHQBuilding = world.buildings.exists(_.name == "HQ")
-    if (hasHQGoal || hasHQBuilding) {
+    val activeBlueprints = (world.activeGoals.map(_.blueprint)
+      ++ world.buildings.map(_.blueprint))
+    if (activeBlueprints.exists(_.isHeadquarters)) {
       BlueprintLibrary.Home
     } else {
       BlueprintLibrary.Headquarters
