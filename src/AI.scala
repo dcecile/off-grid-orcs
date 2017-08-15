@@ -4,13 +4,12 @@ import offGridOrcs.StepExtensions._
 import scala.util.Random
 
 object AI {
-  def reevaluatePlan(orc: Orc, world: World): Orc = {
+  def reevaluatePlan(orc: Orc, world: World): Option[Plan] = {
     val isPlanInvalid = orc.plan.isEmpty || isPlanPreconditionInvalid(orc, world)
     if (isPlanInvalid) {
-      orc.copy(plan =
-        choosePlan(orc, world))
+      Some(choosePlan(orc, world))
     } else {
-      orc
+      None
     }
   }
 
@@ -21,17 +20,13 @@ object AI {
 
   def isPlanPreconditionValid(precondition: Precondition, orc: Orc, world: World): Boolean = {
     precondition match {
-      case Precondition.UnobstructedPath() =>
-        true
       case Precondition.NoGoals() =>
         world.activeGoals.isEmpty
-      case Precondition.CanCarryMore() =>
-        orc.canCarryMore
     }
   }
 
   def choosePlan(orc: Orc, world: World): Plan = {
-    def choices = PlanChoice.First(
+    val choices = PlanChoice.First(
       PlanChoice.If(
         !orc.canCarryMore,
         designDeliveryPlan(orc, world)),
@@ -76,7 +71,10 @@ object AI {
     def subplan = designDestinationPlan(orc, world, Seq())(_, _, _)
     PlanChoice.First(
       subplan(
-        world.activeGoals.flatMap(_.stockpilePositions),
+        world.activeGoals
+          .filter(goal =>
+            world(goal.stockpilePosition).stock.wood < goal.neededWood)
+          .map(_.stockpilePosition),
         Timings.DropSpeed, Step.DropStock),
       subplan(
         Seq(orc.position),
@@ -90,12 +88,13 @@ object AI {
   }
 
   def designBuildPlan(orc: Orc, world: World, goal: Goal): PlanChoice = {
-    val preconditions = Seq(Precondition.CanCarryMore())
+    val preconditions = Seq()
+    val stockpile = goal.stockpilePosition
     def subplan = designDestinationPlan(orc, world, preconditions)(_, _, _)
     PlanChoice.First(
       subplan(
         goal.toClearPositions
-          .intersect(goal.stockpilePositions),
+          .intersect(Seq(goal.stockpilePosition)),
         Timings.ChopWoodSpeed,
         Step.ChopWood),
       subplan(
@@ -103,24 +102,56 @@ object AI {
         Timings.ChopWoodSpeed,
         Step.ChopWood),
       PlanChoice.If(
-        orc.isCarrying,
-        designDeliveryPlan(orc, world)),
-      subplan(
-        goal.toBuildFlooringPositions,
-        Timings.BuildSpeed,
-        Step.BuildFlooring),
-      subplan(
-        goal.toBuildWallsPositions,
-        Timings.BuildSpeed,
-        Step.BuildWalls),
-      subplan(
-        goal.toBuildRoofPositions,
-        Timings.BuildSpeed,
-        Step.BuildRoof),
-      subplan(
-        goal.toAddDecalPositions,
-        Timings.BuildSpeed,
-        Step.AddDecal))
+        isGoalMissingWood(orc, world, goal),
+        designWoodGatheringPlan(orc, world, goal.stockpilePosition)),
+      PlanChoice.Best(
+        PlanChoice.If(
+          isGoalNeedingWood(orc, world, goal),
+          designWoodGatheringPlan(orc, world, goal.stockpilePosition)),
+        PlanChoice.First(
+          PlanChoice.If(
+            orc.isCarrying,
+            designDeliveryPlan(orc, world)),
+          subplan(
+            goal.toBuildFlooringPositions,
+            Timings.BuildSpeed,
+            Step.BuildFlooring(stockpile, _)),
+          subplan(
+            goal.toBuildWallsPositions,
+            Timings.BuildSpeed,
+            Step.BuildWalls(stockpile, _)),
+          subplan(
+            goal.toBuildRoofPositions,
+            Timings.BuildSpeed,
+            Step.BuildRoof(stockpile, _)),
+          subplan(
+            goal.toAddDecalPosition.toSeq,
+            Timings.BuildSpeed,
+            Step.AddDecal(stockpile, _)))))
+  }
+
+  def isGoalMissingWood(orc: Orc, world: World, goal: Goal): Boolean = {
+    countTotalWood(orc, world, goal) < 2
+  }
+
+  def isGoalNeedingWood(orc: Orc, world: World, goal: Goal): Boolean = {
+    countTotalWood(orc, world, goal) < goal.neededWood
+  }
+
+  def countTotalWood(orc: Orc, world: World, goal: Goal): Int = {
+    val stockpileStock = world(goal.stockpilePosition).stock
+    (orc.stock + stockpileStock).wood
+  }
+
+  def designWoodGatheringPlan(orc: Orc, world: World, stockpilePosition: Vec2): PlanChoice = {
+    PlanChoice({
+      val pathOption = Search.findPathToTrees(orc, world, stockpilePosition)
+      pathOption.map(path =>
+        Plan(
+          Seq(),
+          walkPath(path, orc, world)
+            .followedBy(world.currentTime, Timings.ChopWoodSpeed, Step.ChopWood)))
+    })
   }
 
   def designDestinationPlan(orc: Orc, world: World, preconditions: Seq[Precondition])(positions: Seq[Vec2], stepSpeed: Duration, partialStep: Time => Step): PlanChoice =
@@ -131,7 +162,7 @@ object AI {
         Some(Plan(
           preconditions,
           walkTo(destination, orc, world)
-            .followedBy(stepSpeed, partialStep)))
+            .followedBy(world.currentTime, stepSpeed, partialStep)))
       }))
 
   def pickNearest(orc: Orc, positions: Seq[Vec2]): Vec2 = {
@@ -148,7 +179,14 @@ object AI {
       orc.position,
       world.currentTime,
       directionSequence,
-      Seq.fill(directionSequence.length)(Timings.WalkSpeed))
+      Stream.continually(Timings.WalkSpeed))
+  }
+
+  def walkPath(destinationSequence: Seq[Vec2], orc: Orc, world: World): Seq[Step] = {
+    val completionTimeSequence = Stream.iterate(world.currentTime)(_ + Timings.WalkSpeed).drop(1)
+    destinationSequence
+      .zip(completionTimeSequence)
+      .map(Function.tupled(Step.Walk))
   }
 
   def designIdlePlan(orc: Orc, world: World): Plan = {
@@ -164,7 +202,7 @@ object AI {
       Random.shuffle(repeat(directions)),
       Random.shuffle(repeat(delays)))
     Plan(
-      Seq(Precondition.NoGoals(), Precondition.UnobstructedPath()),
+      Seq(Precondition.NoGoals()),
       steps)
   }
 
@@ -175,6 +213,7 @@ object AI {
       .scanLeft(currentTime)(_ + _)
     destinationSequence
       .zip(completionTimeSequence)
+      .drop(1)
       .map(Function.tupled(Step.Walk))
   }
 }

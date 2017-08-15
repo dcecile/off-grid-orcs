@@ -17,6 +17,10 @@ final case class World(currentTime: Time, tiles: js.Array[Tile], orcs: js.Array[
     goals(id.index).get
   }
 
+  def isPositionValid(position: Vec2): Boolean = {
+    position == position.clamp(Vec2.Zero, Vec2.One * (Dimensions.MapSize - 1))
+  }
+
   def activeGoals: Seq[Goal] =
     goals.flatten
 

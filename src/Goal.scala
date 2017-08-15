@@ -1,6 +1,6 @@
 package offGridOrcs
 
-final case class Goal(id: Reference.Goal, topLeft: Vec2, blueprint: Blueprint, startTime: Time, allPositions: Seq[Vec2], toClearPositions: Seq[Vec2], toBuildFlooringPositions: Seq[Vec2], toBuildWallsPositions: Seq[Vec2], toBuildRoofPositions: Seq[Vec2], toAddDecalPositions: Seq[Vec2], stockpilePositions: Seq[Vec2]) {
+final case class Goal(id: Reference.Goal, topLeft: Vec2, blueprint: Blueprint, startTime: Time, allPositions: Seq[Vec2], toClearPositions: Seq[Vec2], toBuildFlooringPositions: Seq[Vec2], toBuildWallsPositions: Seq[Vec2], toBuildRoofPositions: Seq[Vec2], toAddDecalPosition: Option[Vec2], stockpilePosition: Vec2) {
   val color = Colors.Goal
   val pulse = Pulse(
     startTime, Timings.GoalPulse, Colors.GoalPulseStart, 1.0, Pulse.Sine())
@@ -9,7 +9,12 @@ final case class Goal(id: Reference.Goal, topLeft: Vec2, blueprint: Blueprint, s
     toBuildFlooringPositions,
     toBuildWallsPositions,
     toBuildRoofPositions,
-    toAddDecalPositions).exists(_.nonEmpty)
+    toAddDecalPosition.toSeq).exists(_.nonEmpty)
+  val neededWood = Seq(
+    toBuildFlooringPositions,
+    toBuildWallsPositions,
+    toBuildRoofPositions,
+    toAddDecalPosition.toSeq).map(_.length).sum * 2
   def fromBlueprint(world: World): Goal =
     Goal.fromBlueprint(id, topLeft, blueprint, startTime, world)
 }
@@ -22,7 +27,7 @@ object Goal {
       translate(positions)
         .filter({ position =>
           val tile = world(position)
-          test.isDefinedAt(tile.structure)
+          !test.isDefinedAt(tile.structure)
         })
     Goal(
       id,
@@ -33,20 +38,20 @@ object Goal {
         _.clearingPositions),
       toClearPositions = check(
         _.clearingPositions,
-        { case Tile.Trees(_) => () }),
+        { case Tile.Grass(_) | Tile.Building(_) => () }),
       toBuildFlooringPositions = check(
         _.buildingPositions,
-        { case Tile.Grass(_) => () }),
+        { case Tile.Building(Tile.Flooring() | Tile.Walls() | Tile.Roof() | Tile.Decal()) => () }),
       toBuildWallsPositions = check(
         _.buildingPositions,
-        { case Tile.Building(Tile.Flooring()) => () }),
+        { case Tile.Building(Tile.Walls() | Tile.Roof() | Tile.Decal()) => () }),
       toBuildRoofPositions = check(
         _.buildingPositions,
-        { case Tile.Building(Tile.Walls()) => () }),
-      toAddDecalPositions = check(
-        _.decalPositions,
-        { case Tile.Building(Tile.Roof()) => () }),
-      stockpilePositions = translate(
-        _.stockpilePositions))
+        { case Tile.Building(Tile.Roof() | Tile.Decal()) => () }),
+      toAddDecalPosition = check(
+        blueprint => Seq(blueprint.decalPosition),
+        { case Tile.Building(Tile.Decal()) => () }).headOption,
+      stockpilePosition = translate(
+        blueprint => Seq(blueprint.stockpilePosition)).head)
   }
 }

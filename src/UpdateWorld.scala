@@ -12,11 +12,22 @@ object UpdateWorld {
   }
 
   def animateWorld(world: World): World = {
-    world.orcs.foldLeft(world)({ (world, orc) =>
-      val commands = executeOrcPlan(
-        AI.reevaluatePlan(orc, world),
-        world)
+    val newWorld = updatePlans(world)
+    newWorld.orcs.foldLeft(newWorld)({ (world, orc) =>
+      val commands = executeOrcPlan(orc, world)
       world.execute(commands)
+    })
+  }
+
+  def updatePlans(world: World): World = {
+    world.orcs.foldLeft(world)({ (world, orc) =>
+      AI.reevaluatePlan(orc, world) match {
+        case Some(newPlan) =>
+          world.execute(Seq(Command.UpdateOrc(
+            orc.copy(plan = newPlan))))
+        case None =>
+          world
+      }
     })
   }
 
@@ -51,25 +62,29 @@ object UpdateWorld {
         Seq(
           Command.UpdateTile(newTile),
           Command.UpdateOrc(newOrc))
-      case _: Step.BuildFlooring =>
-        executeOrcBuildStep(orc, world, Tile.Flooring())
-      case _: Step.BuildWalls =>
-        executeOrcBuildStep(orc, world, Tile.Walls())
-      case _: Step.BuildRoof =>
-        (executeOrcBuildStep(orc, world, Tile.Roof())
+      case buildStep: Step.BuildFlooring =>
+        executeOrcBuildStep(orc, world, buildStep, Tile.Flooring())
+      case buildStep: Step.BuildWalls =>
+        executeOrcBuildStep(orc, world, buildStep, Tile.Walls())
+      case buildStep: Step.BuildRoof =>
+        (executeOrcBuildStep(orc, world, buildStep, Tile.Roof())
           ++ updateBuildingShade(orc.position, world))
-      case _: Step.AddDecal =>
-        (executeOrcBuildStep(orc, world, Tile.Decal())
+      case buildStep: Step.AddDecal =>
+        (executeOrcBuildStep(orc, world, buildStep, Tile.Decal())
           ++ updateBuildingShade(orc.position, world))
     }
   }
 
-  def executeOrcBuildStep(orc: Orc, world: World, stage: Tile.BuildingStage): Seq[Command] = {
-    val oldTile = world(orc.position)
-    val newTile = oldTile.copy(structure = Tile.Building(stage))
+  def executeOrcBuildStep(orc: Orc, world: World, buildStep: Step.Build, stage: Tile.BuildingStage): Seq[Command] = {
+    val oldBuildTile = world(orc.position)
+    val newBuildTile = oldBuildTile.copy(structure = Tile.Building(stage))
+    val oldStockpileTile = world(buildStep.stockpilePosition)
+    val newStockpileTile = oldStockpileTile.copy(
+      stock = oldStockpileTile.stock - Stock.Wood(2))
     Seq(
       Seq(
-        Command.UpdateTile(newTile),
+        Command.UpdateTile(newBuildTile),
+        Command.UpdateTile(newStockpileTile),
         Command.UpdateOrc(orc))).flatten
   }
 
@@ -105,7 +120,7 @@ object UpdateWorld {
       .collect(tile => tile.structure match {
         case Tile.Grass(_) =>
           tile.copy(structure =
-            Tile.Grass(Tile.HardShadow()))
+            Tile.Grass(Tile.SoftShadow()))
       })
       .map(Command.UpdateTile)
   }
@@ -117,12 +132,8 @@ object UpdateWorld {
   def findNearbyTiles(position: Vec2, world: World, directions: Seq[Vec2]): Seq[Tile] = {
     directions
       .map(_ + position)
-      .filter(isPositionValid)
+      .filter(world.isPositionValid(_))
       .map(world(_))
-  }
-
-  def isPositionValid(position: Vec2): Boolean = {
-    position == position.clamp(Vec2.Zero, Vec2.One * (Dimensions.MapSize - 1))
   }
 
   def countShadows(position: Vec2, world: World): Int = {

@@ -1,6 +1,6 @@
 package offGridOrcs
 
-final case class Blueprint(cursorBitmap: Bitmap, buildingPositions: Seq[Vec2], decalPositions: Seq[Vec2], clearingPositions: Seq[Vec2], stockpilePositions: Seq[Vec2])
+final case class Blueprint(cursorBitmap: Bitmap, buildingPositions: Seq[Vec2], decalPosition: Vec2, clearingPositions: Seq[Vec2], stockpilePosition: Vec2)
 
 object Blueprint {
   sealed trait Element
@@ -44,8 +44,8 @@ object Blueprint {
     Blueprint(
       cursorBitmap,
       buildingPositions = positionTuples.flatMap(_._1),
-      decalPositions = positionTuples.flatMap(_._2),
+      decalPosition = positionTuples.flatMap(_._2).head,
       clearingPositions = positionTuples.flatMap(_._3),
-      stockpilePositions = positionTuples.flatMap(_._4))
+      stockpilePosition = positionTuples.flatMap(_._4).head)
   }
 }
