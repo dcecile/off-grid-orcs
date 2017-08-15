@@ -1,6 +1,13 @@
 package offGridOrcs
 
-final case class Tile(position: Vec2, structure: Tile.Structure, orc: Option[Reference.Orc], goal: Option[Reference.Goal], stock: Stock)
+final case class Tile(
+  position: Vec2,
+  structure: Tile.Structure,
+  orc: Option[Reference.Orc],
+  building: Option[Reference.Building],
+  goal: Option[Reference.Goal],
+  stock: Stock
+)
 
 object Tile {
   sealed trait Structure

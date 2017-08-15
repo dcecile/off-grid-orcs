@@ -17,25 +17,29 @@ object ViewInspection {
     val world = model.mapModel.world
     val tile = world(model.topLeft + model.selection)
     val healthyAndGreen = Seq("HEALTHY", "GREEN")
-    val noStock = Seq("NO STOCK")
     val fullData = tile match {
-      case Tile(_, _, Some(orcID), _, _) =>
+      case Tile(_, _, Some(orcID), _, _, _) =>
         val orc = world(orcID)
         ("ORC",
           healthyAndGreen,
           getStockDetails(orc.stock))
-      case Tile(_, Tile.Trees(_), _, _, _) =>
+      case Tile(_, _, _, Some(buildingID), _, _) =>
+        val building = world(buildingID)
+        (building.name,
+          Seq("STURDY"),
+          getStockDetails(building.stock))
+      case Tile(_, Tile.Trees(_), _, _, _, _) =>
         ("TREES",
           healthyAndGreen,
           getStockDetails(tile.stock))
-      case Tile(_, Tile.Grass(_), _, _, _) =>
+      case Tile(_, Tile.Grass(_), _, _, _, _) =>
         ("GRASS",
           healthyAndGreen,
           getStockDetails(tile.stock))
-      case Tile(_, Tile.Building(_), _, _, _) =>
-        ("HQ",
-          Seq("STURDY"),
-          noStock)
+      case Tile(_, Tile.Building(_), _, _, _, _) =>
+        ("???",
+          Seq("UNDER", "CNSTRCTN"),
+          getStockDetails(tile.stock))
     }
     (fullData._1, model.mode match {
       case Model.InspectionMode.Status() =>

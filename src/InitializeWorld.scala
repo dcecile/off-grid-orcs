@@ -9,6 +9,7 @@ object InitializeWorld {
       Time.Zero,
       initializeTiles(),
       js.Array[Orc](),
+      js.Array[Building](),
       js.Array[Option[Goal]]())
     initializeOrc(world)
   }
@@ -17,9 +18,10 @@ object InitializeWorld {
     initializeTilePositions()
       .map(position => Tile(
         position,
-        Tile.Trees(
+        structure = Tile.Trees(
           initializeTreesShade(position)),
         orc = None,
+        building = None,
         goal = None,
         stock = Stock.Zero))
       .toJSArray

@@ -11,7 +11,10 @@ object ViewMap {
     (viewPaused(model)
       ++ viewCursor(model)
       ++ viewModeButton('A', 0, currentAction == Cursor.Inspect())
-      ++ viewModeButton('D', 2, currentAction == Cursor.Build())
+      ++ viewModeButton('D', 2, currentAction match {
+        case Cursor.Build(_) => true
+        case _ => false
+      })
       ++ viewModeButton('G', 4, model.isPaused))
   }
 

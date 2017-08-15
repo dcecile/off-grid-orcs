@@ -155,4 +155,14 @@ object UpdateWorld {
         world.currentTime,
         world))))
   }
+
+  def pickNewBlueprint(world: World): Blueprint = {
+    val hasHQGoal = world.activeGoals.exists(_.blueprint.name == "HQ")
+    val hasHQBuilding = world.buildings.exists(_.name == "HQ")
+    if (hasHQGoal || hasHQBuilding) {
+      BlueprintLibrary.Home
+    } else {
+      BlueprintLibrary.Headquarters
+    }
+  }
 }

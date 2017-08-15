@@ -32,13 +32,13 @@ object UpdateMap {
         moveMouse(model, None)
       case _ => model
     }
-    val newMessage = message match {
+    val newMessage = (message match {
       case Message.KeyDown(key) =>
-        translateKeyDown(key).getOrElse(message)
+        translateKeyDown(key, newModel)
       case Message.KeyUp(key) =>
-        translateKeyUp(key).getOrElse(message)
-      case _ => message
-    }
+        translateKeyUp(key)
+      case _ => None
+    }).getOrElse(message)
     update(newModel, newMessage)
   }
 
@@ -48,13 +48,13 @@ object UpdateMap {
         position = position).clamp)
   }
 
-  def translateKeyDown(key: Key): Option[MapMessage] = {
+  def translateKeyDown(key: Key, model: Model.Map): Option[MapMessage] = {
     val scrollSpeed = 1.0
     key match {
       case Shortcuts.Map.ActionInspect => Some(
         MapMessage.ChangeAction(Cursor.Inspect()))
       case Shortcuts.Map.ActionBuild => Some(
-        MapMessage.ChangeAction(Cursor.Build()))
+        MapMessage.ChangeAction(Cursor.Build(UpdateWorld.pickNewBlueprint(model.world))))
       case Shortcuts.Map.Pause => Some(
         MapMessage.Pause())
       case Shortcuts.Map.ScrollLeft => Some(
@@ -94,12 +94,12 @@ object UpdateMap {
     val newPosition = model.cursor.position.get
     val topLeft = model.camera.topLeft + newPosition.spriteTopLeft(action.bitmap.size)
     action match {
-      case Cursor.Build() =>
+      case Cursor.Build(blueprint) =>
         model.copy(
           world = UpdateWorld.startBlueprint(
             model.world,
             topLeft,
-            BlueprintLibrary.Headquarters),
+            blueprint),
           cursor = (model.cursor.copy(
             action = Cursor.Inspect(),
             position = Some(newPosition)): Cursor.Map).clamp)

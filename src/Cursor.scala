@@ -26,8 +26,8 @@ object Cursor {
     val bitmap = BitmapLibrary.InspectCursor
   }
 
-  final case class Build() extends Action {
-    val bitmap = BlueprintLibrary.Headquarters.cursorBitmap
+  final case class Build(blueprint: Blueprint) extends Action {
+    val bitmap = blueprint.cursorBitmap
     override val pulse = Pulse(
       Time.Zero, Timings.BlueprintPulse, Colors.BlueprintPulseStart, 1.0, Pulse.Linear())
   }

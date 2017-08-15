@@ -2,7 +2,7 @@ package offGridOrcs
 
 import scala.scalajs.js
 
-final case class World(currentTime: Time, tiles: js.Array[Tile], orcs: js.Array[Orc], goals: js.Array[Option[Goal]]) {
+final case class World(currentTime: Time, tiles: js.Array[Tile], orcs: js.Array[Orc], buildings: js.Array[Building], goals: js.Array[Option[Goal]]) {
   def apply(position: Vec2): Tile = {
     val index = computeTileIndex(position)
     tiles(index)
@@ -10,6 +10,10 @@ final case class World(currentTime: Time, tiles: js.Array[Tile], orcs: js.Array[
 
   def apply(id: Reference.Orc): Orc = {
     orcs(id.index)
+  }
+
+  def apply(id: Reference.Building): Building = {
+    buildings(id.index)
   }
 
   def apply(id: Reference.Goal): Goal = {
@@ -75,6 +79,12 @@ final case class World(currentTime: Time, tiles: js.Array[Tile], orcs: js.Array[
           for (position <- oldGoal.allPositions) {
             setTileGoal(position, None)
           }
+          val newBuildingID = Reference.Building(buildings.length)
+          val newBuilding = Building.fromBlueprint(newBuildingID, oldGoal.topLeft, oldGoal.blueprint)
+          setBuilding(newBuilding)
+          for (position <- newBuilding.positions) {
+            setTileBuilding(position, Some(newBuilding))
+          }
       }
     }
     this
@@ -82,6 +92,10 @@ final case class World(currentTime: Time, tiles: js.Array[Tile], orcs: js.Array[
 
   private def setOrc(orc: Orc): Unit = {
     orcs.update(orc.id.index, orc)
+  }
+
+  private def setBuilding(building: Building): Unit = {
+    buildings.update(building.id.index, building)
   }
 
   private def setGoal(goal: Goal): Unit = {
@@ -97,6 +111,13 @@ final case class World(currentTime: Time, tiles: js.Array[Tile], orcs: js.Array[
     tiles.update(
       index,
       tiles(index).copy(orc = orc.map(_.id)))
+  }
+
+  private def setTileBuilding(position: Vec2, building: Option[Building]): Unit = {
+    val index = computeTileIndex(position)
+    tiles.update(
+      index,
+      tiles(index).copy(building = building.map(_.id)))
   }
 
   private def setTileGoal(position: Vec2, goal: Option[Goal]): Unit = {

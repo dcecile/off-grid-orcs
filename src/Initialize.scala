@@ -25,6 +25,6 @@ object Initialize {
   def initializeCursor(position: Vec2): Cursor.Map = {
     (Cursor(
       Some(position),
-      Cursor.Build()): Cursor.Map).clamp
+      Cursor.Build(BlueprintLibrary.Headquarters)): Cursor.Map).clamp
   }
 }

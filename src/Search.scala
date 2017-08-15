@@ -39,8 +39,11 @@ object Search {
 
     def loopNewPath(newPath: Path, tile: Tile): Option[Path] = {
       tile match {
-        case Tile(_, _, Some(_), _, _) =>
+        case Tile(_, _, Some(_), _, _, _) =>
           // Obstructed by orc
+          None
+        case Tile(_, _, _, Some(_), _, _) =>
+          // Obstructed by building
           None
         case _ =>
           // Found an unobstructed path
