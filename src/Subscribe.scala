@@ -35,5 +35,9 @@ object Subscribe {
 
   def sendKeyMessage(message: Key => Message, send: Message => Unit)(event: dom.KeyboardEvent): Unit = {
     send(message(Key(event.key)))
+    if (Seq(Shortcuts.Map.ScrollUp, Shortcuts.Map.ScrollDown).contains(Key(event.key))) {
+      event.preventDefault()
+      event.stopPropagation()
+    }
   }
 }
