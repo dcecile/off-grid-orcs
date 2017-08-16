@@ -177,7 +177,9 @@ final case class World(
     val index = computeTileIndex(position)
     tiles.update(
       index,
-      tiles(index).copy(demon = demon.map(_.id)))
+      tiles(index).copy(
+        demon = demon.map(_.id),
+        stock = Stock.Zero))
   }
 
   private def setTileBuilding(position: Vec2, building: Option[Building]): Unit = {

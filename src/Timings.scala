@@ -11,8 +11,8 @@ object Timings {
   val DropSpeed = Duration(7)
   val BuildSpeed = Duration(9)
   val DemonWalkSpeed = Seq(
-    Duration(10),
-    Duration(11))
+    Duration(5),
+    Duration(6))
   val DemonColorPulse = Duration(200)
   val DemonLightenPulse = Duration(25)
   val BlueprintPulse = Duration(90)

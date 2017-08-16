@@ -234,7 +234,7 @@ object UpdateWorld {
   }
 
   def attackDemons(world: World, orc: Orc): Seq[Command] = {
-    val positions = for (y <- -1 to +1; x <- -1 to +1) yield orc.position + Vec2(x.toDouble, y.toDouble)
+    val positions = for (y <- -2 to +2; x <- -2 to +2) yield orc.position + Vec2(x.toDouble, y.toDouble)
     val demons = positions
       .filter(world.isPositionValid(_))
       .map(world(_))
@@ -243,12 +243,12 @@ object UpdateWorld {
       .map(world(_))
     Random.shuffle(demons)
       .take(1)
-      .filter(_ => Random.nextDouble() > 0.5)
+      .filter(_ => Random.nextDouble() < 0.25)
       .map(Command.DeleteDemon)
   }
 
   def attackOrcs(world: World, demon: Demon): Seq[Command] = {
-    val positions = for (y <- -1 to +1; x <- -1 to +1) yield demon.position + Vec2(x.toDouble, y.toDouble)
+    val positions = for (y <- -2 to +2; x <- -2 to +2) yield demon.position + Vec2(x.toDouble, y.toDouble)
     val orcs = positions
       .filter(world.isPositionValid(_))
       .map(world(_))

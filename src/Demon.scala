@@ -14,11 +14,11 @@ final case class Demon(
 
 object Demon {
   def nextSpawnTime(waveNumber: Int, currentTime: Time): Time = {
-    val delay = 3400 - waveNumber.toDouble * 400
+    val delay = 4000 - waveNumber.toDouble * 400
     currentTime + Duration(delay max 800)
   }
 
   def currentSpawnNumber(waveNumber: Int): Int = {
-    (waveNumber * waveNumber) min 128
+    (waveNumber * waveNumber) min 64
   }
 }
