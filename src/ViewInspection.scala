@@ -18,27 +18,31 @@ object ViewInspection {
     val tile = world(model.topLeft + model.selection)
     val healthyAndGreen = Seq("HEALTHY", "GREEN")
     val fullData = tile match {
-      case Tile(_, _, Some(orcID), _, _, _) =>
+      case Tile(_, _, _, Some(_), _, _, _) =>
+        ("DEMON",
+          Seq("FIERY", "ANGRY"),
+          getStockDetails(Stock.Zero))
+      case Tile(_, _, Some(orcID), _, _, _, _) =>
         val orc = world(orcID)
         ("ORC",
           healthyAndGreen,
           getStockDetails(orc.stock))
-      case Tile(_, _, _, Some(buildingID), _, _) =>
+      case Tile(_, _, _, _, Some(buildingID), _, _) =>
         val building = world(buildingID)
         (building.blueprint.name,
           Seq(
             "STURDY",
             s"${building.currentOrcs}/${building.blueprint.housingCapacity} ORCS"),
           getStockDetails(building.stock))
-      case Tile(_, Tile.Trees(_), _, _, _, _) =>
+      case Tile(_, Tile.Trees(_), _, _, _, _, _) =>
         ("TREES",
           healthyAndGreen,
           getStockDetails(tile.stock))
-      case Tile(_, Tile.Grass(_), _, _, _, _) =>
+      case Tile(_, Tile.Grass(_), _, _, _, _, _) =>
         ("GRASS",
           healthyAndGreen,
           getStockDetails(tile.stock))
-      case Tile(_, Tile.Building(_), _, _, _, _) =>
+      case Tile(_, Tile.Building(_), _, _, _, _, _) =>
         ("???",
           Seq("UNDER", "CNSTRCTN"),
           getStockDetails(tile.stock))

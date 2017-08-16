@@ -9,4 +9,7 @@ object View {
 
   def viewInspectionScreen(model: Model.Inspection): Seq[Sprite] =
     ViewInspection.view(model)
+
+  def viewMenuScreen(model: Model.Menu): Seq[Sprite] =
+    ViewMenu.view(model)
 }

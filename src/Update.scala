@@ -9,6 +9,8 @@ object Update {
         UpdateMap.update(mapModel, message)
       case inspectionModel: Model.Inspection =>
         UpdateInspection.update(inspectionModel, message)
+      case menuModel: Model.Menu =>
+        UpdateMenu.update(menuModel, message)
     }
   }
 

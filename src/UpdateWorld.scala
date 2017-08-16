@@ -1,5 +1,7 @@
 package offGridOrcs
 
+import scala.util.Random
+
 object UpdateWorld {
   def update(isPaused: Boolean, world: World, message: MapMessage): World = {
     (isPaused, message) match {
@@ -12,10 +14,13 @@ object UpdateWorld {
   }
 
   def animateWorld(world: World): World = {
-    world
+    spawnDemons(world)
       .foldLeft(_.buildings, findNextOrcs)
-      .foldLeft(_.orcs, updateOrcPlan)
-      .foldLeft(_.orcs, executeOrcPlan)
+      .foldLeft(_.activeOrcs, updateOrcPlan)
+      .foldLeft(_.activeOrcs, executeOrcPlan)
+      .foldLeft(_.activeDemons, moveDemon)
+      .foldLeft(_.activeOrcs, attackDemons)
+      .foldLeft(_.activeDemons, attackOrcs)
   }
 
   def updateOrcPlan(world: World, orc: Orc): Seq[Command] = {
@@ -38,7 +43,7 @@ object UpdateWorld {
             Command.UpdateBuilding(building.copy(
               currentOrcs = building.currentOrcs + 1,
               nextOrcTime = if (building.currentOrcs + 1 < building.blueprint.housingCapacity) {
-                Some(world.currentTime + Timings.OrcHousingSpeed)
+                Some(world.currentTime + Timings.OrcHousingSpeed + Timings.WalkSpeed * Random.nextDouble())
               } else {
                 None
               })))
@@ -48,6 +53,54 @@ object UpdateWorld {
       case None =>
         Seq()
     }
+  }
+
+  def spawnDemons(world: World): World = {
+    if (world.demonSpawnTime.isReached(world.currentTime)) {
+      val orcsX = world.activeOrcs.map(_.position.x)
+      val newDemons = spawnDemons(
+        orcsX.min,
+        orcsX.max,
+        world.currentTime,
+        Demon.currentSpawnNumber(world.demonWaveNumber))
+      val commands = newDemons.map(Command.InsertDemon)
+      world.execute(commands).copy(
+        demonWaveNumber = world.demonWaveNumber + 1,
+        demonSpawnTime = Demon.nextSpawnTime(
+          world.demonWaveNumber + 1,
+          world.currentTime))
+    } else {
+      world
+    }
+  }
+
+  def spawnDemons(minX: Double, maxX: Double, currentTime: Time, count: Int): Seq[Reference.Demon => Demon] = {
+    val diffX = (maxX - minX) max (count.toDouble * 2)
+    val centerX = (minX + maxX) / 2
+    def generateX() = {
+      val offsetX = (Random.nextDouble() - 0.5) * diffX
+      ((centerX + offsetX).floor max 0) min (Dimensions.MapSize - 1)
+    }
+    val startPositions = Stream.continually(
+      Vec2(generateX(), 0))
+    val destinationPositions = Stream.continually(
+      Vec2(generateX(), Dimensions.MapSize - 1))
+    val walkDurations = Stream.continually(Timings.DemonWalkSpeed).flatten
+    val walkTimes = walkDurations.scanLeft(currentTime)(_ + _).drop(1)
+    startPositions
+      .zip(destinationPositions)
+      .take(count)
+      .map({ case (start, destination) => (id: Reference.Demon) =>
+        val diff = destination - start
+        val directionX = Seq.fill(diff.x.abs.toInt)(Vec2(diff.x.signum.toDouble, 0))
+        val directionY = Seq.fill(diff.y.abs.toInt)(Vec2(0, diff.y.signum.toDouble))
+        val directionSequence = Random.shuffle(directionX ++ directionY)
+        val walkDestinations = directionSequence.scanLeft(start)(_ + _).drop(1)
+        val steps = walkDestinations
+          .zip(walkTimes)
+          .map(Function.tupled(Step.Walk))
+        Demon(id, start, steps, currentTime)
+      })
   }
 
   def executeOrcPlan(world: World, orc: Orc): Seq[Command] = {
@@ -163,6 +216,44 @@ object UpdateWorld {
         case Tile.Building(Tile.Decal()) => ()
       })
       .length
+  }
+
+  def moveDemon(world: World, demon: Demon): Seq[Command] = {
+    demon.path match {
+      case pathHead :: pathTail =>
+        if (pathHead.completionTime.isReached(world.currentTime)) {
+          Seq(Command.UpdateDemon(demon.copy(
+            position = pathHead.destination,
+            path = pathTail)))
+        } else {
+          Seq()
+        }
+      case Nil =>
+        Seq(Command.DeleteDemon(demon))
+    }
+  }
+
+  def attackDemons(world: World, orc: Orc): Seq[Command] = {
+    val positions = for (y <- -1 to +1; x <- -1 to +1) yield orc.position + Vec2(x.toDouble, y.toDouble)
+    val demons = positions
+      .filter(world.isPositionValid(_))
+      .map(world(_))
+      .map(_.demon)
+      .flatten
+      .map(world(_))
+      .filter(_ => Random.nextDouble() > 0.5)
+    demons.map(Command.DeleteDemon)
+  }
+
+  def attackOrcs(world: World, demon: Demon): Seq[Command] = {
+    val positions = for (y <- -1 to +1; x <- -1 to +1) yield demon.position + Vec2(x.toDouble, y.toDouble)
+    val orcs = positions
+      .filter(world.isPositionValid(_))
+      .map(world(_))
+      .map(_.orc)
+      .flatten
+      .map(world(_))
+    orcs.map(Command.DeleteOrc)
   }
 
   def startBlueprint(world: World, position: Vec2, blueprint: Blueprint): World = {

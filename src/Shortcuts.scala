@@ -4,6 +4,7 @@ object Shortcuts {
   object Map {
     val ActionInspect = Key("a")
     val ActionBuild = Key("d")
+    val Menu = Key("f")
     val Pause = Key("g")
     val ScrollLeft = Key("ArrowLeft")
     val ScrollRight = Key("ArrowRight")

@@ -1,6 +1,6 @@
 package offGridOrcs
 
-sealed trait Message extends MapMessage with InspectionMessage
+sealed trait Message extends MapMessage with InspectionMessage with MenuMessage
 object Message {
   final case class Animate(timeStep: Duration) extends Message
   final case class KeyDown(key: Key) extends Message
@@ -13,6 +13,7 @@ object Message {
 sealed trait MapMessage
 object MapMessage {
   final case class ChangeAction(action: Cursor.Action) extends MapMessage
+  final case class ShowMenu() extends MapMessage
   final case class Pause() extends MapMessage
   final case class StartScrollX(speed: Double) extends MapMessage
   final case class StopScrollX() extends MapMessage
@@ -28,4 +29,9 @@ object InspectionMessage {
   final case class Close() extends InspectionMessage
   final case class Move(direction: Vec2) extends InspectionMessage
   final case class ChangeMode(newMode: Model.InspectionMode) extends InspectionMessage
+}
+
+sealed trait MenuMessage
+object MenuMessage {
+  final case class Close() extends MenuMessage
 }

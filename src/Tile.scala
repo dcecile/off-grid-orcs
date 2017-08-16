@@ -4,6 +4,7 @@ final case class Tile(
   position: Vec2,
   structure: Tile.Structure,
   orc: Option[Reference.Orc],
+  demon: Option[Reference.Demon],
   building: Option[Reference.Building],
   goal: Option[Reference.Goal],
   stock: Stock

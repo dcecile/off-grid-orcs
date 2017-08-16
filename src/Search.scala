@@ -15,8 +15,7 @@ object Search {
 
   def pickBestSolution(stockpilePosition: Vec2)(solutionFrontier: Frontier): Path = {
     val bestSolution = solutionFrontier.minBy(solution =>
-      (stockpilePosition - solution.head).gridLength
-      + Random.nextInt(1))
+      (stockpilePosition - solution.head).gridLength)
     bestSolution.reverse.tail
   }
 
@@ -39,10 +38,13 @@ object Search {
 
     def loopNewPath(newPath: Path, tile: Tile): Option[Path] = {
       tile match {
-        case Tile(_, _, Some(_), _, _, _) =>
+        case Tile(_, _, Some(_), _, _, _, _) =>
           // Obstructed by orc
           None
-        case Tile(_, _, _, Some(_), _, _) =>
+        case Tile(_, _, _, Some(_), _, _, _) =>
+          // Obstructed by demon
+          None
+        case Tile(_, _, _, _, Some(_), _, _) =>
           // Obstructed by building
           None
         case _ =>

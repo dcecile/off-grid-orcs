@@ -3,11 +3,14 @@ package offGridOrcs
 object ViewTile {
   def view(world: World, tile: Tile): Vec3 = {
     val baseColor = viewBaseColor(tile)
-    val withOrc = tile.orc match {
-      case Some(_) => Colors.Orc.mix(baseColor, viewOrcCover(tile))
-      case None => baseColor
+    val withDemonOrOrc = (tile.demon, tile.orc) match {
+      case (Some(demonID), _) =>
+        viewDemon(demonID, world).mix(baseColor, viewDemonCover(tile))
+      case (_, Some(_)) =>
+        Colors.Orc.mix(baseColor, viewOrcCover(tile))
+      case _ => baseColor
     }
-    withOrc + (tile.goal match {
+    withDemonOrOrc + (tile.goal match {
       case Some(id) => viewGoal(world, id)
       case None => Vec3.Zero
     })
@@ -55,6 +58,14 @@ object ViewTile {
     }
   }
 
+  def viewDemon(demonID: Reference.Demon, world: World): Vec3 = {
+    val currentTime = world.currentTime
+    val demon = world(demonID)
+    Colors.DemonRed
+      .mix(Colors.DemonOrange, demon.colorPulse(currentTime))
+      .lighten(demon.lightenPulse(currentTime))
+  }
+
   def viewOrcCover(tile: Tile): Double = {
     tile.structure match {
       case Tile.Trees(_) =>
@@ -67,6 +78,10 @@ object ViewTile {
         Colors.BuildingRoofCover
       case _ => 0
     }
+  }
+
+  def viewDemonCover(tile: Tile): Double = {
+    viewOrcCover(tile) * Colors.DemonCover
   }
 
   def viewGoal(world: World, id: Reference.Goal): Vec3 = {

@@ -15,6 +15,7 @@ object ViewMap {
         case Cursor.Build(_) => true
         case _ => false
       })
+      ++ viewModeButton('F', 3, false)
       ++ viewModeButton('G', 4, model.isPaused))
   }
 

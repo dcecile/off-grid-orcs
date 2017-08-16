@@ -2,14 +2,29 @@ package offGridOrcs
 
 import scala.scalajs.js
 
-final case class World(currentTime: Time, tiles: js.Array[Tile], orcs: js.Array[Orc], buildings: js.Array[Building], goals: js.Array[Option[Goal]]) {
+final case class World(
+  currentTime: Time,
+  tiles: js.Array[Tile],
+  orcs: js.Array[Option[Orc]],
+  demons: js.Array[Option[Demon]],
+  buildings: js.Array[Building],
+  goals: js.Array[Option[Goal]],
+  demonWaveNumber: Int,
+  demonSpawnTime: Time
+) {
   def apply(position: Vec2): Tile = {
     val index = computeTileIndex(position)
     tiles(index)
   }
 
   def apply(id: Reference.Orc): Orc = {
-    orcs(id.index)
+    // Assume that all old references have been purged
+    orcs(id.index).get
+  }
+
+  def apply(id: Reference.Demon): Demon = {
+    // Assume that all old references have been purged
+    demons(id.index).get
   }
 
   def apply(id: Reference.Building): Building = {
@@ -25,8 +40,9 @@ final case class World(currentTime: Time, tiles: js.Array[Tile], orcs: js.Array[
     position == position.clamp(Vec2.Zero, Vec2.One * (Dimensions.MapSize - 1))
   }
 
-  def activeGoals: Seq[Goal] =
-    goals.flatten
+  def activeOrcs: Seq[Orc] = orcs.flatten
+  def activeDemons: Seq[Demon] = demons.flatten
+  def activeGoals: Seq[Goal] = goals.flatten
 
   def foldLeft[A](select: World => Seq[A], transform: (World, A) => Seq[Command]): World = {
     select(this).foldLeft(this)({ (world, item) =>
@@ -59,6 +75,28 @@ final case class World(currentTime: Time, tiles: js.Array[Tile], orcs: js.Array[
           setTileOrc(oldOrc.position, None)
           setTileOrc(newOrc.position, Some(newOrc))
         }
+        this
+      case Command.DeleteOrc(oldOrc) =>
+        unsetOrc(oldOrc.id)
+        setTileOrc(oldOrc.position, None)
+        this
+      case Command.InsertDemon(partialDemon) =>
+        val id = Reference.Demon(demons.length)
+        val newDemon = partialDemon(id)
+        setDemon(newDemon)
+        setTileDemon(newDemon.position, Some(newDemon))
+        this
+      case Command.UpdateDemon(newDemon) =>
+        val oldDemon = apply(newDemon.id)
+        setDemon(newDemon)
+        if (newDemon.position != oldDemon.position) {
+          setTileDemon(oldDemon.position, None)
+          setTileDemon(newDemon.position, Some(newDemon))
+        }
+        this
+      case Command.DeleteDemon(oldDemon) =>
+        unsetDemon(oldDemon.id)
+        setTileDemon(oldDemon.position, None)
         this
       case Command.UpdateBuilding(newBuilding) =>
         setBuilding(newBuilding)
@@ -101,7 +139,19 @@ final case class World(currentTime: Time, tiles: js.Array[Tile], orcs: js.Array[
   }
 
   private def setOrc(orc: Orc): Unit = {
-    orcs.update(orc.id.index, orc)
+    orcs.update(orc.id.index, Some(orc))
+  }
+
+  private def unsetOrc(id: Reference.Orc): Unit = {
+    orcs.update(id.index, None)
+  }
+
+  private def setDemon(demon: Demon): Unit = {
+    demons.update(demon.id.index, Some(demon))
+  }
+
+  private def unsetDemon(id: Reference.Demon): Unit = {
+    demons.update(id.index, None)
   }
 
   private def setBuilding(building: Building): Unit = {
@@ -121,6 +171,13 @@ final case class World(currentTime: Time, tiles: js.Array[Tile], orcs: js.Array[
     tiles.update(
       index,
       tiles(index).copy(orc = orc.map(_.id)))
+  }
+
+  private def setTileDemon(position: Vec2, demon: Option[Demon]): Unit = {
+    val index = computeTileIndex(position)
+    tiles.update(
+      index,
+      tiles(index).copy(demon = demon.map(_.id)))
   }
 
   private def setTileBuilding(position: Vec2, building: Option[Building]): Unit = {

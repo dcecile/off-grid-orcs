@@ -6,11 +6,14 @@ import scala.scalajs.js.JSConverters._
 object InitializeWorld {
   def initialize(): World = {
     val world = World(
-      Time.Zero,
-      initializeTiles(),
-      js.Array[Orc](),
-      js.Array[Building](),
-      js.Array[Option[Goal]]())
+      currentTime = Time.Zero,
+      tiles = initializeTiles(),
+      orcs = js.Array[Option[Orc]](),
+      demons = js.Array[Option[Demon]](),
+      buildings = js.Array[Building](),
+      goals = js.Array[Option[Goal]](),
+      demonWaveNumber = 1,
+      demonSpawnTime = Time.Zero)
     initializeOrc(world)
   }
 
@@ -21,6 +24,7 @@ object InitializeWorld {
         structure = Tile.Trees(
           initializeTreesShade(position)),
         orc = None,
+        demon = None,
         building = None,
         goal = None,
         stock = Stock.Zero))

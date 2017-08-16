@@ -33,6 +33,11 @@ final class Loop(var model: Model, val canvas: SimpleCanvas) {
         overlaySprites(inspectionModel)
         canvas.drawPixels(colorBuffer)
         requestAnimationFrame()
+      case menuModel: Model.Menu =>
+        aggregateColors(menuModel.mapModel)
+        overlaySprites(menuModel)
+        canvas.drawPixels(colorBuffer)
+        requestAnimationFrame()
     }
   }
 
@@ -128,6 +133,11 @@ final class Loop(var model: Model, val canvas: SimpleCanvas) {
       ViewMap.viewCursor(model.mapModel))
     overlaySprites(
       View.viewInspectionScreen(model))
+  }
+
+  def overlaySprites(model: Model.Menu): Unit = {
+    overlaySprites(
+      View.viewMenuScreen(model))
   }
 
   def overlaySprites(sprites: Seq[Sprite]): Unit = {

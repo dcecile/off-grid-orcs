@@ -9,16 +9,24 @@ object UpdateMap {
     message match {
       case MapMessage.Reset() =>
         Initialize.initializeModel()
+      case MapMessage.ShowMenu() =>
+        Model.Menu(
+          Model.MenuMode.Normal(),
+          Cursor(
+            model.cursor.position,
+            Cursor.Overlay()),
+          model)
       case MapMessage.Pause() =>
         model.copy(
           isPaused = !model.isPaused)
       case Message.LeftClick(_) =>
         handleLeftClick(model)
       case _ =>
-        model.copy(
-          world = UpdateWorld.update(model.isPaused, model.world, message),
-          camera = updateCamera(model.camera, message),
-          cursor = updateCursor(model.cursor, message))
+        checkForGameOver(
+          model.copy(
+            world = UpdateWorld.update(model.isPaused, model.world, message),
+            camera = updateCamera(model.camera, message),
+            cursor = updateCursor(model.cursor, message)))
     }
   }
 
@@ -55,6 +63,8 @@ object UpdateMap {
         MapMessage.ChangeAction(Cursor.Inspect()))
       case Shortcuts.Map.ActionBuild => Some(
         MapMessage.ChangeAction(Cursor.Build(UpdateWorld.pickNewBlueprint(model.world))))
+      case Shortcuts.Map.Menu => Some(
+        MapMessage.ShowMenu())
       case Shortcuts.Map.Pause => Some(
         MapMessage.Pause())
       case Shortcuts.Map.ScrollLeft => Some(
@@ -174,6 +184,19 @@ object UpdateMap {
         }
       case _ =>
         cursor
+    }
+  }
+
+  def checkForGameOver(model: Model.Map): Model = {
+    if (model.world.activeOrcs.length == 0) {
+      Model.Menu(
+        Model.MenuMode.GameOver(),
+        Cursor(
+          model.cursor.position,
+          Cursor.Overlay()),
+        model)
+    } else {
+      model
     }
   }
 }

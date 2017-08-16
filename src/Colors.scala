@@ -18,6 +18,10 @@ object Colors {
   val BuildingWallsCover = 0.3
   val BuildingRoofCover = 0.8
   val Orc = Vec3.hexRGB(0x2cce18)
+  val DemonRed = Vec3.hexRGB(0xff1818)
+  val DemonOrange = Vec3.hexRGB(0xff9218)
+  val DemonLighten = 0.3
+  val DemonCover = 0.5
   val CursorBold = Vec3.One * 0.4
   val CursorFaint = Vec3.One * 0.1
   val BlueprintBold = Vec3.hexRGB(0x305080)

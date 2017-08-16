@@ -6,6 +6,9 @@ final case class Duration(totalFrames: Double) extends AnyVal {
 
   def -(other: Duration) =
     Duration(totalFrames - other.totalFrames)
+
+  def *(scale: Double) =
+    Duration(totalFrames * scale)
 }
 
 object Duration {
