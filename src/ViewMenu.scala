@@ -22,6 +22,7 @@ object ViewMenu {
       case Model.MenuMode.GameOver() =>
         ("THE END",
           Seq(
+            s"${totalOrcs} ORCS",
             s"${totalHours} HOURS"))
     }
   }
