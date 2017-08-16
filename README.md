@@ -1,5 +1,11 @@
 # Off-Grid Orcs
-_A game for #LOWREZJAM 2017_
+_A fast-paced strategy game for #LOWREZJAM 2017_
+
+## Playing
+
+Visit the game's homepage at Itch.io to play in your browser:
+
+> https://dcecile.itch.io/off-grid-orcs
 
 ## Developing
 
