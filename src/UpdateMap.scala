@@ -105,14 +105,24 @@ object UpdateMap {
     val topLeft = model.camera.topLeft + newPosition.spriteTopLeft(action.bitmap.size)
     action match {
       case Cursor.Build(blueprint) =>
-        model.copy(
-          world = UpdateWorld.startBlueprint(
-            model.world,
-            topLeft,
-            blueprint),
-          cursor = (model.cursor.copy(
-            action = Cursor.Inspect(),
-            position = Some(newPosition)): Cursor.Map).clamp)
+        val buildPositions = blueprint.clearingPositions
+          .map(topLeft + _)
+        val buildTiles = buildPositions
+          .map(model.world(_))
+        val invalidTiles = buildTiles
+          .filter(tile => tile.goal.nonEmpty || tile.building.nonEmpty)
+        if (invalidTiles.isEmpty) {
+          model.copy(
+            world = UpdateWorld.startBlueprint(
+              model.world,
+              topLeft,
+              blueprint),
+            cursor = (model.cursor.copy(
+              action = Cursor.Inspect(),
+              position = Some(newPosition)): Cursor.Map).clamp)
+        } else {
+          model
+        }
       case Cursor.Inspect() =>
         Model.Inspection(
           topLeft + Vec2(2, 2),
