@@ -2,7 +2,7 @@ package offGridOrcs
 
 final case class Blueprint(
   name: String,
-  housingCapcity: Int,
+  housingCapacity: Int,
   cursorBitmap: Bitmap,
   buildingPositions: Seq[Vec2],
   decalPosition: Vec2,
@@ -22,7 +22,7 @@ object Blueprint {
     final case class Stockpile() extends Element
   }
 
-  def build(name: String, housingCapcity: Int, size: Int)(elements: Option[Element]*): Blueprint = {
+  def build(name: String, housingCapacity: Int, size: Int)(elements: Option[Element]*): Blueprint = {
     val cursorBitmap = Bitmap.build(size)(elements map {
       case None =>
         Vec3.Zero
@@ -53,7 +53,7 @@ object Blueprint {
     }
     Blueprint(
       name,
-      housingCapcity,
+      housingCapacity,
       cursorBitmap,
       buildingPositions = positionTuples.flatMap(_._1),
       decalPosition = positionTuples.flatMap(_._2).head,

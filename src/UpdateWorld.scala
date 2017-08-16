@@ -37,7 +37,7 @@ object UpdateWorld {
               _, building.entrancePosition, Plan.Zero, Stock.Zero)),
             Command.UpdateBuilding(building.copy(
               currentOrcs = building.currentOrcs + 1,
-              nextOrcTime = if (building.currentOrcs + 1 < building.blueprint.housingCapcity) {
+              nextOrcTime = if (building.currentOrcs + 1 < building.blueprint.housingCapacity) {
                 Some(world.currentTime + Timings.OrcHousingSpeed)
               } else {
                 None

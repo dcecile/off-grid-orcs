@@ -12,5 +12,5 @@ object Timings {
   val BuildSpeed = Duration(10)
   val BlueprintPulse = Duration(90)
   val GoalPulse = Duration(300)
-  val OrcHousingSpeed = Duration(30)
+  val OrcHousingSpeed = Duration(300)
 }
