@@ -241,8 +241,10 @@ object UpdateWorld {
       .map(_.demon)
       .flatten
       .map(world(_))
+    Random.shuffle(demons)
+      .take(1)
       .filter(_ => Random.nextDouble() > 0.5)
-    demons.map(Command.DeleteDemon)
+      .map(Command.DeleteDemon)
   }
 
   def attackOrcs(world: World, demon: Demon): Seq[Command] = {
