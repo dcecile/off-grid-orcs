@@ -41,7 +41,17 @@ object SimpleCanvas {
     element.style.width = elementSize
     element.style.height = elementSize
     element.style.backgroundSize = s"$elementSize $elementSize"
-    element.style.setProperty("image-rendering", "pixelated")
+    // https://builtvisible.com/image-scaling-in-css/
+    val pixelatedVariants = Seq(
+      ("-ms-interpolation-mode", "nearest-neighbor"), // IE 7+ (non-standard property)
+      ("image-rendering", "-webkit-optimize-contrast"), // Safari 6, UC Browser 9.9
+      ("image-rendering", "-webkit-crisp-edges"), // Safari 7+
+      ("image-rendering", "-moz-crisp-edges"), // Firefox 3.6+
+      ("image-rendering", "-o-crisp-edges"), // Opera 12
+      ("image-rendering", "pixelated") // Chrome 41+ and Opera 26+
+    )
+    pixelatedVariants.foreach(
+      Function.tupled(element.style.setProperty(_, _)))
     document.body.appendChild(element)
     val context = element.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
     val imageData = context.getImageData(0, 0, Dimensions.LowRez, Dimensions.LowRez)
