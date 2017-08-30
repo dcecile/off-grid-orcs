@@ -57,7 +57,7 @@ object ViewMap {
         } else {
           BitmapLibrary.MapReverseButton
         }),
-      Glyph.getSprite(
+      GlyphBitmap.getSprite(
         topLeft + Vec2(2, 2),
         char,
         if (isActive) {

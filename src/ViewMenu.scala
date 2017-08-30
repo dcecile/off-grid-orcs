@@ -34,7 +34,7 @@ object ViewMenu {
   }
 
   def viewTitle(text: String): Seq[Sprite] = {
-    Glyph.getSprites(Vec2(4, 4), text, _.boldLargeBitmap)
+    GlyphBitmap.getSprites(Vec2(4, 4), text, _.boldLargeBitmap)
   }
 
   def viewCloseButton(): Seq[Sprite] = {
@@ -44,7 +44,7 @@ object ViewMenu {
       Sprite(
         topLeft,
         BitmapLibrary.InspectCorner),
-      Glyph.getSprite(
+      GlyphBitmap.getSprite(
         topLeft + Vec2(2, 1),
         'Q',
         _.boldBitmap))
@@ -54,7 +54,7 @@ object ViewMenu {
     val topLeft = Vec2(4, 18)
     lines
       .zip(Stream.iterate(0)(_ + 1))
-      .map({ case (line, index) => Glyph.getSprites(
+      .map({ case (line, index) => GlyphBitmap.getSprites(
         topLeft + Vec2(0, 8 * index.toDouble),
         line,
         _.boldBitmap)

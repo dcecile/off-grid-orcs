@@ -1,6 +1,6 @@
 package offGridOrcs
 
-object GlyphLibrary {
+object Font {
   val glyphs: Seq[Glyph] = Seq(
     Glyph.build('A')(
       "                ",

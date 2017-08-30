@@ -1,40 +1,6 @@
 package offGridOrcs
 
-final case class Glyph(char: Char, bits: Seq[Seq[Double]], flexs: Seq[Int]) {
-  lazy val boldBitmap = makeSmallBitmap(
-    Colors.OverlayBoldForeground)
-
-  lazy val boldLargeBitmap = makeLargeBitmap(
-    Colors.OverlayBoldForeground)
-
-  lazy val boldReverseBitmap = makeSmallBitmap(
-    Colors.OverlayBoldReverse)
-
-  lazy val faintBitmap = makeSmallBitmap(
-    Colors.OverlayFaintForeground)
-
-  lazy val faintReverseBitmap = makeSmallBitmap(
-    Colors.OverlayFaintReverse)
-
-  private def makeSmallBitmap(color: Vec3): Bitmap = {
-    val pixels = bits
-      .flatten
-      .map(color * _)
-    Bitmap.build(Glyph.size)(pixels: _*)
-  }
-
-  private def makeLargeBitmap(color: Vec3): Bitmap = {
-    val blank = Seq.fill(Glyph.size)(0.0)
-    val pixels = bits
-      .zip(flexs)
-      .flatMap({ case (bit, flex) =>
-        Seq.fill(flex)(bit ++ blank)
-      })
-      .flatten
-      .map(color * _)
-    Bitmap.build(Glyph.size * 2)(pixels: _*)
-  }
-}
+final case class Glyph(char: Char, bits: Seq[Seq[Double]], flexs: Seq[Int])
 
 object Glyph {
   val size = 6
@@ -72,25 +38,4 @@ object Glyph {
   }
 
   val parser = """^  (  |\[\]){6}  $""".r
-
-  def getSprites(topLeft: Vec2, string: String, bitmap: Glyph => Bitmap): Seq[Sprite] = {
-    val positions = (Stream.iterate(topLeft)
-      (_ + Vec2(Glyph.size.toDouble + 1, 0)))
-    string
-      .zip(positions)
-      .map({ case (char, position) =>
-        getSprite(position, char, bitmap)
-      })
-  }
-
-  def getSprite(topLeft: Vec2, char: Char, bitmap: Glyph => Bitmap): Sprite = {
-    Sprite(topLeft, bitmap(find(char)))
-  }
-
-  def find(char: Char): Glyph = {
-    GlyphLibrary.glyphs
-      .filter(_.char == char)
-      .headOption
-      .getOrElse(GlyphLibrary.unknownGlyph)
-  }
 }
