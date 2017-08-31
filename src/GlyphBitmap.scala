@@ -1,5 +1,8 @@
 package offGridOrcs
 
+import firstOrc.Glyph
+import firstOrc.Font
+
 final case class GlyphBitmap(glyph: Glyph) {
   def char = glyph.char
 

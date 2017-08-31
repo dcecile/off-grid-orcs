@@ -1,7 +1,9 @@
 scalaVersion := "2.12.3"
 
 enablePlugins(ScalaJSPlugin)
+
 scalaJSUseMainModuleInitializer := true
+mainClass in Compile := Some("offGridOrcs.Main")
 
 libraryDependencies ++= Seq(
   "org.scala-js" %%% "scalajs-dom" % "0.9.1",
@@ -20,7 +22,7 @@ scalacOptions ++= Seq(
   "-Ywarn-unused-import"
 )
 
-scalaSource in Compile := baseDirectory.value / "src"
+scalaSource in Compile := baseDirectory.value
 scalaSource in Test := baseDirectory.value / "src"
 
 val testFilePattern = "*.Test.scala"

@@ -1,5 +1,7 @@
 package offGridOrcs
 
+import firstOrc.Glyph
+
 object BitmapLibrary {
   val InspectCursor = {
     val o = Vec3.Zero
