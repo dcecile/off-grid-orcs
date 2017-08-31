@@ -1,5 +1,5 @@
 # Off-Grid Orcs
-_A fast-paced strategy game for #LOWREZJAM 2017_
+_A pixelated real-time strategy game for #LOWREZJAM 2017_
 
 ## Playing
 
