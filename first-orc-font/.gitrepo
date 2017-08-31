@@ -1,0 +1,11 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/dcecile/first-orc-font.git
+	branch = master
+	commit = d04329c3e4e5db229558d483ef4c3155c3f11e0a
+	parent = 84961d3345c3b2929cb6ed9284f8cc83235e5919
+	cmdver = 0.3.1
