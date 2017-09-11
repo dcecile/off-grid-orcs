@@ -6,6 +6,6 @@
 [subrepo]
 	remote = https://github.com/dcecile/first-orc-font.git
 	branch = master
-	commit = d04329c3e4e5db229558d483ef4c3155c3f11e0a
-	parent = 84961d3345c3b2929cb6ed9284f8cc83235e5919
+	commit = 3633a4a686bc9a57be79c2223e88e31291c93d96
+	parent = eaa1883514b8fdaea87140684b7ba12e6d491b25
 	cmdver = 0.3.1

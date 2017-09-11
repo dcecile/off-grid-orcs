@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>First Orc Font Test</title>
+    <style>
+    @font-face {
+      font-family: 'First Orc Short';
+      font-weight: 400;
+      src: url(FirstOrcShort-Regular.ttf);
+    }
+    @font-face {
+      font-family: 'First Orc Tall';
+      font-weight: 400;
+      src: url(FirstOrcTall-Regular.ttf);
+    }
+    .test {
+      margin: 40px;
+      padding: 12px;
+      border: 6px solid black;
+      width: 450px;
+    }
+    .test.short {
+      font-family: 'First Orc Short';
+      font-size: 18px;
+    }
+    .test.tall {
+      font-family: 'First Orc Tall';
+      font-size: 36px;
+    }
+    </style>
+  </head>
+  <body>
+    <div class="test short">
+      THE FIVE BOXING WIZARDS JUMP QUICKLY
+      0+1-2*3/4=56_789%
+      WELL, OK. THEN; HMM: OH? WOW!
+      'CHAR' "STRI\NG" &lsquo;TITLE&rsquo; &ldquo;QUOTE&rdquo;
+      (EVAL) [INDEX] {BLOCK} &lt;TAG&gt;
+      `RUN` ~HOME @HERE #ID $VAR X^Y GOOD&amp;BAD|FINE 
+    </div>
+    <div class="test short">
+      the five boxing wizards jump quickly
+      a+b-c*x/y=zi_jkl%
+      well, ok. then; hmm: oh? wow!
+      'char' "stri\ng" &lsquo;title&rsquo; &ldquo;quote&rdquo;
+      (eval) [index] {block} &lt;tag&gt;
+      `run` ~home @here #id $var x^y good&amp;bad|fine 
+    </div>
+    <div class="test tall">
+      THE FIVE BOXING WIZARDS JUMP QUICKLY
+      0+1-2*3/4=56_789%
+      WELL, OK. THEN; HMM: OH? WOW!
+      'CHAR' "STRI\NG" &lsquo;TITLE&rsquo; &ldquo;QUOTE&rdquo;
+      (EVAL) [INDEX] {BLOCK} &lt;TAG&gt;
+      `RUN` ~HOME @HERE #ID $VAR X^Y GOOD&amp;BAD|FINE 
+    </div>
+    <div class="test tall">
+      the five boxing wizards jump quickly
+      a+b-c*x/y=zi_jkl%
+      well, ok. then; hmm: oh? wow!
+      'char' "stri\ng" &lsquo;title&rsquo; &ldquo;quote&rdquo;
+      (eval) [index] {block} &lt;tag&gt;
+      `run` ~home @here #id $var x^y good&amp;bad|fine 
+    </div>
+  </body>
+</html>
