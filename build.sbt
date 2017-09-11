@@ -22,7 +22,7 @@ scalacOptions ++= Seq(
   "-Ywarn-unused-import"
 )
 
-scalaSource in Compile := baseDirectory.value
+scalaSource in Compile := baseDirectory.value / "src"
 scalaSource in Test := baseDirectory.value / "src"
 
 val testFilePattern = "*.Test.scala"

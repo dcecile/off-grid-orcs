@@ -22,22 +22,29 @@ final case class GlyphBitmap(glyph: Glyph) {
     Colors.OverlayFaintReverse)
 
   private def makeSmallBitmap(color: Vec3): Bitmap = {
-    val pixels = glyph.bits
-      .flatten
-      .map(color * _)
-    Bitmap.build(Glyph.size)(pixels: _*)
+    makeBitmap(glyph.bits, color, Glyph.size)
   }
 
   private def makeLargeBitmap(color: Vec3): Bitmap = {
-    val blank = Seq.fill(Glyph.size)(0.0)
-    val pixels = glyph.bits
-      .zip(glyph.flexs)
-      .flatMap({ case (bit, flex) =>
-        Seq.fill(flex)(bit ++ blank)
-      })
+    val blank = Seq.fill(Glyph.size)(false)
+    val bits = glyph.tallBits
+      .map(_ ++ blank)
+    makeBitmap(bits, color, Glyph.size * 2)
+  }
+
+  private def makeBitmap(bits: Seq[Seq[Boolean]], color: Vec3, size: Int): Bitmap = {
+    val pixels = bits
       .flatten
-      .map(color * _)
-    Bitmap.build(Glyph.size * 2)(pixels: _*)
+      .map(colorBit(color, _))
+    Bitmap.build(size)(pixels: _*)
+  }
+
+  private def colorBit(color: Vec3, bit: Boolean): Vec3 = {
+    if (bit) {
+      color
+    } else {
+      Vec3.Zero
+    }
   }
 }
 
